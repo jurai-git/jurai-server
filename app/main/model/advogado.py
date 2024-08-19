@@ -24,7 +24,7 @@ class Advogado(db.Model):
     username = db.Column(db.String(50), nullable=False, unique=True)
     email = db.Column(db.String(100), nullable=False, unique=True)
     oab = db.Column(db.String(20), nullable=False, unique=False)
-    _password_hash = db.Column(db.LargeBinary(60), nullable=False)
+    _password_hash = db.Column(db.String(60), nullable=False)
     _salt = db.Column(db.LargeBinary(29), nullable=False)
     _access_token = db.Column(db.String(32), nullable=False, unique=True)
 
@@ -39,7 +39,7 @@ class Advogado(db.Model):
         self._access_token = secrets.token_hex(16)
 
     def get_token(self, password):
-        hashed_pwd = hash_password(password, self._salt).decode('utf-8')
+        hashed_pwd = hash_password(password, self._salt)
         return self._access_token if hashed_pwd == self._password_hash else None
 
     def auth(self, token):
@@ -58,7 +58,7 @@ class Advogado(db.Model):
 
     @property
     def salt(self):
-        return self._salt
+        return self._salt.decode('utf-8')
 
     @property
     def access_token(self):

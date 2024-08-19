@@ -1,4 +1,4 @@
-from flask import blueprints, Blueprint
+from flask import Blueprint
 from flask_cors import CORS
 
 bp = Blueprint('main', __name__)

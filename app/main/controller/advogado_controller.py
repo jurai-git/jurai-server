@@ -40,3 +40,5 @@ def auth():
         access_token = advogado_service.get_token(uname, password)
         if access_token:
             return jsonify({"message": "SUCCESS", "access_token": access_token}), 201
+        else:
+            return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401

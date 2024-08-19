@@ -23,11 +23,13 @@ class AdvogadoService:
     def get_token(self, username, password):
         try:
             advogado = Advogado.query.filter_by(username=username).one()
+            print(advogado)
             if advogado.get_token(password):
                 return advogado.get_token(password)
             return None
 
         except NoResultFound:
+            print("NoResultFound")
             return None
 
     def update_advogado(self, advogado_id, **kwargs):

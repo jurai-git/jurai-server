@@ -3,7 +3,6 @@ import os
 from flask import Flask, jsonify
 from flask.cli import load_dotenv
 from flask_cors import cross_origin
-from flask_sqlalchemy import SQLAlchemy
 
 from dotenv import load_dotenv
 from app.config import Config
