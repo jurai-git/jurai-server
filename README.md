@@ -3,7 +3,7 @@
 ## Sobre o repositório
 
 Este repositório contém o código fonte para o servidor do JurAI.
-O servidor é escrito em Python, utilizando Flask como framework backend, e Flask Alchemy + MySQL como banco de dados.
+O servidor é escrito em Python, utilizando Flask como framework backend, e Flask SqlAlchemy + MySQL como banco de dados.
 
 Para conhecer mais sobre a estrutura do projeto e como você pode contribuir para ele com código, veja as [docs](docs) do projeto.
 
