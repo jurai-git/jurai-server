@@ -13,6 +13,7 @@ def create_app(config_class=Config):
     # create the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
+    os.makedirs(app.config['VAR_FOLDER'], exist_ok=True)
     load_dotenv()
 
     # db initialization

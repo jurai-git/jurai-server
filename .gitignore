@@ -178,4 +178,4 @@ build/
 *.egg-info/
 
 *.env
->>>>>>> 3af3e3c (add: initial server structure)
+var/
