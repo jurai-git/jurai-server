@@ -12,4 +12,4 @@ def get_ementa(doc_text):
 
     # Retira, caso tenha mais de uma estrofe, informações dispensáveis
     menu_text = ' '.join(split[:-1]) if len(split) != 1 else menu_text.join(split)
-    return menu_text
+    return menu_text2

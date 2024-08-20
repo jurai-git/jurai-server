@@ -58,5 +58,8 @@ class AdvogadoService:
     def find_by_uname(self, username):
         return self.db.session.query(Advogado).filter_by(username=username).first()
 
+    def find_by_token(self, token):
+        return self.db.session.query(Advogado).filter_by(_access_token=token).first()
+
     def find_by_email(self, email):
         return self.db.session.query(Advogado).filter_by(email=email).first()

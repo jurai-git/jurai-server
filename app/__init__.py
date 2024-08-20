@@ -7,6 +7,7 @@ from flask_cors import cross_origin
 from dotenv import load_dotenv
 from app.config import Config
 from app.main.service.advogado_service import AdvogadoService
+from app.main.service.requerente_service import RequerenteService
 from app.main.extensions import db
 
 def create_app(config_class=Config):
@@ -28,10 +29,13 @@ def create_app(config_class=Config):
     app.extensions['db'] = db
     with app.app_context():
         from app.main.model.advogado import Advogado
+        from app.main.model.requerente import Requerente
         db.create_all()
     # service initialization
     advogado_service = AdvogadoService(db)
     app.extensions['advogado_service'] = advogado_service
+    requerente_service = RequerenteService(db)
+    app.extensions['requerente_service'] = requerente_service
 
     @cross_origin()
     @app.route("/", methods=["POST", "GET"])

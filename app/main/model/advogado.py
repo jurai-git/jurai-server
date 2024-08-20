@@ -27,6 +27,7 @@ class Advogado(db.Model):
     _password_hash = db.Column(db.String(60), nullable=False)
     _salt = db.Column(db.LargeBinary(29), nullable=False)
     _access_token = db.Column(db.String(32), nullable=False, unique=True)
+    requerentes = db.relationship('Requerente', backref='advogado' ,lazy=True)
 
     def __init__(self, username, email, oab, pwd, **kw: Any):
         super().__init__(**kw)

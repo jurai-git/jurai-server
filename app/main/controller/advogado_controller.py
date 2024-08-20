@@ -5,7 +5,7 @@ advogado_bp = Blueprint('advogado', __name__)
 CORS(advogado_bp)
 
 @cross_origin()
-@advogado_bp.route('/create', methods=['POST'])
+@advogado_bp.route('/', methods=['POST'])
 def create_advogado():
     data = request.json
     username = data.get('username')
@@ -26,7 +26,7 @@ def create_advogado():
 
 
 @cross_origin()
-@advogado_bp.route("/auth", methods=['POST'])
+@advogado_bp.route("/token", methods=['GET'])
 def auth():
     data = request.json
     uname = data.get('username')
@@ -42,3 +42,24 @@ def auth():
             return jsonify({"message": "SUCCESS", "access_token": access_token}), 201
         else:
             return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
+
+@cross_origin()
+@advogado_bp.route("/requerentes", methods=['GET'])
+def get_requerentes():
+    # gather data
+    data = request.json
+    advogado_token = data.get('access_token')
+
+    # verifications
+    if not advogado_token:
+        return jsonify({"message": "ERROR_REQURED_FIELDS_EMPTY"}), 400
+    
+    with current_app.app_context():
+        advogado_service = current_app.extensions['advogado_service']
+        requerente_service = current_app.extensions['requerente_service']
+
+        advogado = advogado_service.find_by_token(advogado_token)
+        if not advogado:
+            return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
+
+        return jsonify({"message": "SUCCESS", "requerentes_list": requerente_service.get_requerentes(advogado)}), 201
