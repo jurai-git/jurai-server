@@ -23,9 +23,10 @@ class AdvogadoService:
     def get_token(self, username, password):
         try:
             advogado = Advogado.query.filter_by(username=username).one()
-            print(advogado)
-            if advogado.get_token(password):
-                return advogado.get_token(password)
+            token = advogado.get_token(password)
+            if token:
+                print(token)
+                return token
             return None
 
         except NoResultFound:

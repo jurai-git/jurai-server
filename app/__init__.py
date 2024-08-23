@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask.cli import load_dotenv
 from flask_cors import cross_origin
 
@@ -37,10 +37,9 @@ def create_app(config_class=Config):
     requerente_service = RequerenteService(db)
     app.extensions['requerente_service'] = requerente_service
 
-    @cross_origin()
-    @app.route("/", methods=["POST", "GET"])
-    def index():
-        return jsonify({"title": "Index", "body": "Você está na raiz do servidor"})
+    @app.before_request
+    def before_request():
+        request.charset = 'utf-8'
 
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)

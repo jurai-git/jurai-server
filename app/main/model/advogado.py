@@ -40,7 +40,9 @@ class Advogado(db.Model):
         self._access_token = secrets.token_hex(16)
 
     def get_token(self, password):
-        hashed_pwd = hash_password(password, self._salt)
+        hashed_pwd = hash_password(password, self._salt).decode('utf-8')
+        print(hashed_pwd)
+        print(self._password_hash)
         return self._access_token if hashed_pwd == self._password_hash else None
 
     def auth(self, token):

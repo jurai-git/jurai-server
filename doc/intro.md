@@ -9,25 +9,28 @@ Aqui está uma estrutura básica do projeto:
 
 ```
 .
-└── app
-   ├── config.py
-   ├── __init__.py
-   └── main
-      ├── controller
-      │   └── __init__.py
-      ├── extensions.py
-      ├── __init__.py
-      ├── model
-      │   └── __init__.py
-      └── service
-          └── __init__.py
+├── app
+│  ├── config.py
+│  ├── __init__.py
+│  └── main
+│     ├── controller
+│     │   └── __init__.py
+│     ├── extensions.py
+│     ├── __init__.py
+│     ├── model
+│     │   └── __init__.py
+│     └── service
+│         └── __init__.py
+│
+└── models
 
 ```
 
-Como podemos ver, o projeto tem 3 componentes principais: 
+Como podemos ver, o projeto tem 4 componentes principais: 
 - app/main/model - pasta que guarda os modelos ORM do projeto
 - app/main/service - pasta que guarda os serviços do projeto
 - app/main/controller - pasta que guarda os controladores do flask do projeto (juntamente com os endpoints)
+- models - pasta que guarda os modelos de IA do projeto
 
 Além disso, cada diretório contém um arquivo `__init__.py`, que serve para declarar pacotes do python, e para inicializar ditos pacotes.
 

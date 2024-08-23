@@ -34,7 +34,7 @@ def create_requerente():
 
 
 @cross_origin()
-@advogado_bp.route("/", methods=['DELETE'])
+@requerente_bp.route("/", methods=['DELETE'])
 def delete_requerente():
     # gather data
     data = request.json
@@ -54,6 +54,6 @@ def delete_requerente():
         requerente = requerente_service.get_by_id(requerente_id)
         try:
             requerente_service.delete_requerente(advogado, requerente)
-            return jsonify({"message": "SUCCESS"})
-        except PermissionError as e:
+            return jsonify({"message": "SUCCESS"}), 200
+        except:
             return jsonify({"message": "ERROR_ACCESS_DENIED"}), 401
