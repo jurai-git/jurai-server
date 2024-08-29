@@ -36,7 +36,11 @@ MYSQL_USER = 'user'
 MYSQL_PASSWORD = 'pwd'
 MYSQL_DB = 'database_schema'
 ```
-Troque as informações do banco de dados de acordo com o seu banco. Você não poderá ter uma tabela chamada `advogado` em seu banco, pois uma tabela de mesmo nome será criada pelo código.
+Troque as informações do banco de dados de acordo com o seu banco. Você não poderá ter tabelas chamadas `advogado`, `requerente` e `demanda` em seu banco, pois tabelas de mesmo nome serão criadas pelo servidor.
+
+#### 4 - Configurar os modelos de IA
+
+Os modelos e datasets não são disponibilizados neste github por serem muito grandes, mas serão disponibilizados em outra plataforma no futuro.
 
 #### 3 - Executar o server
 
