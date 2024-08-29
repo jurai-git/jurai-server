@@ -3,19 +3,7 @@ from typing import Any
 
 import bcrypt
 from app.main.extensions import db
-
-
-def gensalt():
-    return bcrypt.gensalt()
-
-
-def generate_token():
-    return secrets.token_hex(16)
-
-
-def hash_password(password, salt):
-    return bcrypt.hashpw(password.encode('utf-8'), salt)
-
+from app.main.model import crypt_utils
 
 class Advogado(db.Model):
     __tablename__ = 'advogado'
@@ -35,12 +23,12 @@ class Advogado(db.Model):
         self.email = email
         self.oab = oab
 
-        self._salt = gensalt()
+        self._salt = crypt_utils.gensalt()
         self._password_hash = hash_password(pwd, self._salt).decode('utf-8')
-        self._access_token = secrets.token_hex(16)
+        self._access_token = crypt_utils.generate_token()
 
     def get_token(self, password):
-        hashed_pwd = hash_password(password, self._salt).decode('utf-8')
+        hashed_pwd = crypt_utils.hash_password(password, self._salt).decode('utf-8')
         print(hashed_pwd)
         print(self._password_hash)
         return self._access_token if hashed_pwd == self._password_hash else None

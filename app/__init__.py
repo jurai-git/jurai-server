@@ -1,7 +1,6 @@
 import os
 
 from flask import Flask, jsonify, request
-from flask.cli import load_dotenv
 from flask_cors import cross_origin
 
 from dotenv import load_dotenv
@@ -23,13 +22,13 @@ def create_app(config_class=Config):
     password = os.getenv("MYSQL_PASSWORD")
     db_name = os.getenv("MYSQL_DB")
     app.config['SQLALCHEMY_DATABASE_URI'] = ('mysql+mysqlconnector://' + user + ":" + password + "@" + host + ":3306/" + db_name)
-    print(app.config['SQLALCHEMY_DATABASE_URI'])
-
+    
     db.init_app(app)
     app.extensions['db'] = db
     with app.app_context():
         from app.main.model.advogado import Advogado
         from app.main.model.requerente import Requerente
+        from app.main.model.demanda import Demanda
         db.create_all()
     # service initialization
     advogado_service = AdvogadoService(db)

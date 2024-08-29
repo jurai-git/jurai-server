@@ -10,14 +10,44 @@ CORS(requerente_bp)
 def create_requerente():
     # gather data
     data = request.json
-    name = data.get('name')
-    cpf_cnpj = data.get('cpf_cnpj')
-    pessoa_fisica = data.get('pessoa_fisica')
+
+    pessoa_fisica = data.get("pessoa_fisica")
+    cpf_cnpj = data.get("cpf_cnpj")
+    nome = data.get("nome")
+    nome_social = data.get("nome_social")
+    genero = data.get("genero")
+    idoso = data.get("idoso")
+    rg = data.get("rg")
+    orgao_emissor = data.get("orgao_emissor")
+    estado_civil = data.get("estado_civil")
+    nacionalidade = data.get("nacionalidade")
+    profissao = data.get("profissao")
+    cep = data.get("cep")
+    logradouro = data.get("logradouro")
+    email = data.get("email")
+    num_imovel = data.get("num_imovel")
+    complemento = data.get("complemento")
+    estado = data.get("estado")
+    cidade = data.get("cidade")
+    advogado_id = data.get("advogado_id")
+    bairro = data.get("bairro")
+    
+    
+    """
+            pessoa_fisica, cpf_cnpj, nome,
+            nome_social, genero, idoso, rg,
+            orgao_emissor, estado_civil, nacionalidade,
+            profissao, cep, logradouro,
+            email, num_imovel, complemento,
+            bairro, estado, cidade, advogado_id
+    """
     advogado_token = data.get('access_token')
 
     # verifications
-    if not name or not cpf_cnpj or not pessoa_fisica or not advogado_token:
+    if not cpf_cnpj or not nome or not genero or not rg or not orgao_emissor or not estado_civil or not nacionalidade or not profissao or not cep or not logradouro or not num_imovel or not email or not bairro or not estado or not cidade or not advogado_id:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
+    if not idoso:
+        idoso = True
     
     # store in db
     with current_app.app_context():
@@ -29,7 +59,13 @@ def create_requerente():
             return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
         
         id = advogado.id
-        requerente_service.create_requerente(nome=name, pessoa_fisica=pessoa_fisica, cpf_cnpj=cpf_cnpj, advogado_id=id)
+        requerente_service.create_requerente(
+            pessoa_fisica=pessoa_fisica, cpf_cnpj=cpf_cnpj, nome=nome, nome_social=nome_social, 
+            genero=genero, idoso=idoso, rg=rg, orgao_emissor=orgao_emissor, estado_civil=estado_civil,
+            nacionalidade=nacionalidade, profissao=profissao, cep=cep, logradouro=logradouro,
+            email=email, num_imovel=num_imovel, complemento=complemento, bairro=bairro,
+            estado=estado, cidade=cidade, advogado_id=advogado_id
+        )
         return jsonify({"message": "SUCCESS"}), 201
 
 

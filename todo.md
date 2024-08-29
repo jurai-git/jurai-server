@@ -1,0 +1,2 @@
+- importante: criar testes unitários para os controllers
+- implementar controller e service para demandas
