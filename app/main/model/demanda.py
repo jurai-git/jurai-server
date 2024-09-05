@@ -5,9 +5,10 @@ class Demanda(db.Model):
     __tablename__ = "demanda"
 
     # PKs
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_demanda = db.Column(db.Integer, primary_key=True, autoincrement=True)
     
     # Fields
+    identificacao = db.Column(db.String(128), nullable=False)
     foro = db.Column(db.String(50), nullable = False)
     competencia = db.Column(db.String(50), nullable=False)
     classe = db.Column(db.String(50), nullable=False)
@@ -21,9 +22,9 @@ class Demanda(db.Model):
     resumo = db.Column(db.String(4096), nullable=False)
 
     # FKs
-    requerente_cpf_cnpj = db.Column(db.String(50), db.ForeignKey('requerente.cpf_cnpj'), nullable=False)
+    id_requerente = db.Column(db.Integer, db.ForeignKey('requerente.id_requerente'), nullable=False)
 
-    def __init__(self,
+    def __init__(self, identificacao,
         foro, competencia, classe,
         assunto_principal, pedido_liminar, 
         segredo_justica, valor_acao,
@@ -31,6 +32,7 @@ class Demanda(db.Model):
         guia_custas, resumo,
         requerente_cpf_cnpj):
 
+        self.identificacao = identificacao
         self.foro = foro
         self.competencia = competencia
         self.classe = classe

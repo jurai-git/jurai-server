@@ -1,0 +1,69 @@
+<Rule '/advogado/new' (POST, OPTIONS) -> main.advogado.create_advogado>:
+
+curl -X POST http://localhost:5000/advogado/new \
+-H "Content-Type: application/json" \
+-d "{\"username\": \"Advogado Teste\", \"password\": \"12345678\", \"oab\": \"oabTeste123\", \"email\": \"emailTeste@test.com\"}"
+
+
+<Rule '/advogado/get' (POST, OPTIONS) -> main.advogado.get_advogado>:
+
+curl -X POST http://localhost:5000/advogado/get \
+-H "Content-Type: application/json" \
+\ -d "{\"username\": \"Advogado Teste\", \"password\": \"12345678\"}"
+or
+curl -X POST http://localhost:5000/advogado/get \
+-H "Content-Type: application/json" \
+-d "{\"access_token\": \"8cc47aeb7eb16525c75ace63b5990ab4\"}"
+
+
+<Rule '/advogado/token' (POST, OPTIONS) -> main.advogado.auth>:
+
+curl -X POST http://localhost:5000/advogado/token \
+\ -H "Content-Type: application/json" \
+\ -d "{\"username\": \"Advogado Teste\", \"password\": \"12345678\"}"
+
+
+<Rule '/advogado/requerentes' (POST, OPTIONS) -> main.advogado.get_requerentes>:
+
+curl -X POST http://localhost:5000/advogado/requerentes \
+\ -H "Content-Type: application/json" \
+\ -d '{"access_token": "8cc47aeb7eb16525c75ace63b5990ab4"}'
+
+
+<Rule '/advogado/demandas' (POST, OPTIONS) -> main.advogado.get_demandas_from_requerente>:
+
+
+
+
+<Rule '/ai/probability' (POST, OPTIONS) -> main.ai.probability_model>:
+<Rule '/requerente/new' (POST, OPTIONS) -> main.requerente.create_requerente>:
+
+curl -X POST http://localhost:5000/requerente/new \
+    -H "Content-Type: application/json" \
+    -d '{
+        "pessoa_fisica": true,
+        "cpf_cnpj": "12345678900",
+        "nome": "Requerente da Silva",
+        "nome_social": "João",
+        "genero": "M",
+        "idoso": false,
+        "rg": "MG1234567",
+        "orgao_emissor": "SP",
+        "estado_civil": "Solteiro",
+        "nacionalidade": "Brasileiro",
+        "profissao": "Advogado",
+        "cep": "30110-000",
+        "logradouro": "Rua dos Advogados",
+        "email": "requerente.silva@example.com",
+        "num_imovel": "123",
+        "complemento": "Apto 101",
+        "estado": "MG",
+        "cidade": "Belo Horizonte",
+        "bairro": "Centro",
+        "access_token": "8cc47aeb7eb16525c75ace63b5990ab4"
+    }'
+
+
+<Rule '/requerente/remove' (DELETE, OPTIONS) -> main.requerente.delete_requerente>:
+<Rule '/requerente/demandas' (POST, OPTIONS) -> main.requerente.get_demandas>:
+

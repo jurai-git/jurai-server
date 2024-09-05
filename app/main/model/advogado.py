@@ -1,14 +1,12 @@
-import secrets
 from typing import Any
 
-import bcrypt
 from app.main.extensions import db
 from app.main.model import crypt_utils
 
 class Advogado(db.Model):
     __tablename__ = 'advogado'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_advogado = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(50), nullable=False, unique=True)
     email = db.Column(db.String(100), nullable=False, unique=True)
     oab = db.Column(db.String(20), nullable=False, unique=False)
@@ -24,7 +22,7 @@ class Advogado(db.Model):
         self.oab = oab
 
         self._salt = crypt_utils.gensalt()
-        self._password_hash = hash_password(pwd, self._salt).decode('utf-8')
+        self._password_hash = crypt_utils.hash_password(pwd, self._salt).decode('utf-8')
         self._access_token = crypt_utils.generate_token()
 
     def get_token(self, password):

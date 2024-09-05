@@ -1,12 +1,14 @@
 from app.main.extensions import db
-import app.main.model.crypt_utils
+from app.main.model import crypt_utils
+
 
 class Requerente(db.Model):
     __name__ = 'requerente'
 
     # PKs and related stuff
-    pessoa_fisica = db.Column(db.CHAR, nullable = False, unique=False)
-    cpf_cnpj = db.Column(db.String(50), nullable=False, unique=True, primary_key=True)
+    pessoa_fisica = db.Column(db.CHAR, nullable=False, unique=False)
+    cpf_cnpj = db.Column(db.String(50), nullable=False, unique=False)
+    id_requerente = db.Column(db.Integer, nullable=False, primary_key=True, autoincrement=True)
 
 
     # main fields
@@ -15,7 +17,7 @@ class Requerente(db.Model):
     genero = db.Column(db.CHAR, nullable=False)
     idoso = db.Column(db.Boolean, nullable=False)
     rg = db.Column(db.String(50), nullable=True)
-    orgao_emissor = db.Column(db.String(2), nullable=False)
+    orgao_emissor = db.Column(db.String(5), nullable=False)
     estado_civil = db.Column(db.String(50), nullable=False)
     nacionalidade = db.Column(db.String(50), nullable=False)
     profissao = db.Column(db.String(50), nullable=False)
@@ -31,12 +33,12 @@ class Requerente(db.Model):
     cidade = db.Column(db.String(50), nullable = False)
 
     # authentication
-    _password_hash = db.Column(db.String(60), nullable=False)
-    _salt = db.Column(db.LargeBinary(29), nullable=False)
-    _access_token = db.Column(db.String(32), nullable=False, unique=True)
+    _password_hash = db.Column(db.String(60), nullable=True)
+    _salt = db.Column(db.LargeBinary(29), nullable=True)
+    _access_token = db.Column(db.String(32), nullable=True, unique=True)
     
     # FKs
-    advogado_id = db.Column(db.Integer, db.ForeignKey('advogado.id'), nullable=False)
+    advogado_id = db.Column(db.Integer, db.ForeignKey('advogado.id_advogado'), nullable=False)
     demandas = db.relationship('Demanda', backref='Requerente', lazy=True)
 
 

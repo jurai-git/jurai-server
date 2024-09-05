@@ -1,12 +1,13 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
+from sqlalchemy.exc import IntegrityError
 
 requerente_bp = Blueprint('requerente', __name__)
 CORS(requerente_bp)
 
 
 @cross_origin()
-@requerente_bp.route("/", methods=['POST'])
+@requerente_bp.route("/new", methods=['POST'])
 def create_requerente():
     # gather data
     data = request.json
@@ -29,7 +30,6 @@ def create_requerente():
     complemento = data.get("complemento")
     estado = data.get("estado")
     cidade = data.get("cidade")
-    advogado_id = data.get("advogado_id")
     bairro = data.get("bairro")
     
     
@@ -44,7 +44,7 @@ def create_requerente():
     advogado_token = data.get('access_token')
 
     # verifications
-    if not cpf_cnpj or not nome or not genero or not rg or not orgao_emissor or not estado_civil or not nacionalidade or not profissao or not cep or not logradouro or not num_imovel or not email or not bairro or not estado or not cidade or not advogado_id:
+    if not cpf_cnpj or not nome or not genero or not rg or not orgao_emissor or not estado_civil or not nacionalidade or not profissao or not cep or not logradouro or not num_imovel or not email or not bairro or not estado or not cidade:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
     if not idoso:
         idoso = True
@@ -58,19 +58,22 @@ def create_requerente():
         if advogado is None:
             return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
         
-        id = advogado.id
-        requerente_service.create_requerente(
-            pessoa_fisica=pessoa_fisica, cpf_cnpj=cpf_cnpj, nome=nome, nome_social=nome_social, 
-            genero=genero, idoso=idoso, rg=rg, orgao_emissor=orgao_emissor, estado_civil=estado_civil,
-            nacionalidade=nacionalidade, profissao=profissao, cep=cep, logradouro=logradouro,
-            email=email, num_imovel=num_imovel, complemento=complemento, bairro=bairro,
-            estado=estado, cidade=cidade, advogado_id=advogado_id
-        )
+        id = advogado.id_advogado
+        try:
+            requerente_service.create_requerente(
+                pessoa_fisica=pessoa_fisica, cpf_cnpj=cpf_cnpj, nome=nome, nome_social=nome_social, 
+                genero=genero, idoso=idoso, rg=rg, orgao_emissor=orgao_emissor, estado_civil=estado_civil,
+                nacionalidade=nacionalidade, profissao=profissao, cep=cep, logradouro=logradouro,
+                email=email, num_imovel=num_imovel, complemento=complemento, bairro=bairro,
+                estado=estado, cidade=cidade, advogado_id=id
+            )
+        except IntegrityError:
+            return jsonify({"message": "REQUERENTE_ALREADY_EXISTS"}), 409 # teremos que mudar a PK no futuro
         return jsonify({"message": "SUCCESS"}), 201
 
 
 @cross_origin()
-@requerente_bp.route("/", methods=['DELETE'])
+@requerente_bp.route("/remove", methods=['DELETE'])
 def delete_requerente():
     # gather data
     data = request.json
@@ -92,4 +95,25 @@ def delete_requerente():
             requerente_service.delete_requerente(advogado, requerente)
             return jsonify({"message": "SUCCESS"}), 200
         except:
-            return jsonify({"message": "ERROR_ACCESS_DENIED"}), 401
+            return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
+
+
+@cross_origin()
+@requerente_bp.route("/demandas", methods=['POST'])
+def get_demandas():
+    data = request.json
+    requerente_token = data.get('access_token')
+
+    if not requerente_token:
+        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
+    
+    with current_app.app_context():
+        requerente_service = current_app.extensions['requerente_service']
+        demanda_service = current_app.extensions['demanda_service']
+
+        requerente = requerente_service.get_by_token(requerente_token)
+        if not requerente:
+            return jsonify({"ERROR_INVALID_CREDENTIALS"}), 401
+        
+        return jsonify({"message": "SUCCESS", "demanda_list": demanda_service.get_demandas(requerente)})
+

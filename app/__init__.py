@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from app.config import Config
 from app.main.service.advogado_service import AdvogadoService
 from app.main.service.requerente_service import RequerenteService
+from app.main.service.demanda_service import DemandaService
 from app.main.extensions import db
 
 def create_app(config_class=Config):
@@ -30,17 +31,28 @@ def create_app(config_class=Config):
         from app.main.model.requerente import Requerente
         from app.main.model.demanda import Demanda
         db.create_all()
+
     # service initialization
     advogado_service = AdvogadoService(db)
     app.extensions['advogado_service'] = advogado_service
     requerente_service = RequerenteService(db)
     app.extensions['requerente_service'] = requerente_service
+    demanda_service = DemandaService(db)
+    app.extensions['demanda_service'] = demanda_service
+
 
     @app.before_request
     def before_request():
         request.charset = 'utf-8'
 
+    @app.route("/teapot/")
+    def index():
+        return jsonify({"message": "IM_A_TEAPOT"}), 418
+
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
+
+    print("routes: ")
+    print(app.url_map)
 
     return app

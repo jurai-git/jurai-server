@@ -55,13 +55,14 @@ class RequerenteService:
         ]
     
     def delete_requerente(self, advogado, requerente):
-        if not requerente.advogado_id == advogado.id:
+        if not requerente.advogado_id == advogado.id_advogado:
             raise PermissionError("This advogado doesn't have this requerente.")
-            return
         
         self.db.session.delete(requerente)
         self.db.session.commit()
 
-    def get_by_cpf_cnpj(self, cpf_cnpj):
-        return self.db.session.query(Requerente).filter_by(cpf_cnpj=cpf_cnpj).first()
+    def get_by_id(self, id_query):
+        return self.db.session.query(Requerente).filter_by(id=id_query).first()
         
+    def get_by_token(self, access_token):
+        return self.db.session.query(Requerente).filter_by(_access_token=access_token).first()

@@ -53,7 +53,7 @@ def get_advogado():
             return jsonify({
                 "message": "SUCCESS", 
                 "advogado": {
-                    "id": advogado.id,
+                    "id": advogado.id_advogado,
                     "username": advogado.username,
                     "email": advogado.email,
                     "oab": advogado.oab,
@@ -61,7 +61,6 @@ def get_advogado():
                 }
             }), 200
         return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
-
 
 
 @cross_origin()
@@ -102,3 +101,34 @@ def get_requerentes():
             return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
 
         return jsonify({"message": "SUCCESS", "requerentes_list": requerente_service.get_requerentes(advogado)}), 201
+
+@cross_origin()
+@advogado_bp.route("/demandas", methods=['POST'])
+def get_demandas_from_requerente():
+    data = request.json
+    advogado_token = data.get('access_token')
+    requerente_id = data.get('requerente_id')
+
+    if not advogado_token or not requerente_id:
+        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
+    
+    with current_app.app_context():
+        advogado_service = current_app.extensions['advogado_service']
+        requerente_service = current_app.extensions['requerente_service']
+        demanda_service = current_app.extensions['demanda_service']
+
+        # auth advogado
+        advogado = advogado_service.find_by_token(advogado_token)
+        if not advogado:
+            return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
+
+        # see if advogado has requerente
+        requerente = requerente_service.get_by_id(requerente_id)
+        if not requerente:
+            return jsonify({"message": "ERROR_INVALID_REQUERENTE"}), 404
+        
+        if requerente not in advogado.requerentes:
+            return jsonify({"message": "ERROR_DOESNT_OWN_REQUERENTE"}), 403
+        
+        return jsonify({"message": "SUCCESS", "demanda_list": demanda_service.get_demandas(requerente)})
+        
