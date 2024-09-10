@@ -67,7 +67,8 @@ def create_requerente():
                 email=email, num_imovel=num_imovel, complemento=complemento, bairro=bairro,
                 estado=estado, cidade=cidade, advogado_id=id
             )
-        except IntegrityError:
+        except IntegrityError as e:
+            print(e._message)
             return jsonify({"message": "REQUERENTE_ALREADY_EXISTS"}), 409 # teremos que mudar a PK no futuro
         return jsonify({"message": "SUCCESS"}), 201
 

@@ -20,6 +20,7 @@ class AdvogadoService:
 
         return user
 
+
     def get_token(self, username, password):
         try:
             advogado = Advogado.query.filter_by(username=username).one()

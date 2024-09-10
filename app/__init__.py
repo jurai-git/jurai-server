@@ -22,7 +22,7 @@ def create_app(config_class=Config):
     user = os.getenv("MYSQL_USER")
     password = os.getenv("MYSQL_PASSWORD")
     db_name = os.getenv("MYSQL_DB")
-    app.config['SQLALCHEMY_DATABASE_URI'] = ('mysql+mysqlconnector://' + user + ":" + password + "@" + host + ":3306/" + db_name)
+    app.config['SQLALCHEMY_DATABASE_URI'] = ("mysql+mysqlconnector://" + user + ":" + password + "@" + host + ":3306/" + db_name)
     
     db.init_app(app)
     app.extensions['db'] = db

@@ -7,7 +7,7 @@ class RequerenteService:
         self.db = db
 
     def create_requerente(self, 
-        pessoa_fisica, cpf_cnpj, nome,
+        cpf_cnpj, nome,
         nome_social, genero, idoso, rg,
         orgao_emissor, estado_civil, nacionalidade,
         profissao, cep, logradouro,
@@ -16,7 +16,7 @@ class RequerenteService:
         advogado_id):
 
         r = Requerente(
-            pessoa_fisica, cpf_cnpj, nome,
+            cpf_cnpj, nome,
             nome_social, genero, idoso, rg,
             orgao_emissor, estado_civil, nacionalidade,
             profissao, cep, logradouro,
@@ -32,13 +32,13 @@ class RequerenteService:
     def get_requerentes(self, advogado):
         return [
             {
-                "pessoa_fisica": r.pessoa_fisica,
+                "id_requerente": r.id_requerente,
                 "cpf_cnpj": r.cpf_cnpj,
                 "nome": r.nome,
-                "nome_social": r.nome_social,
+                "nome_social": r.nome_social if r.nome_social is not None else "",
                 "genero": r.genero,
                 "idoso": r.idoso,
-                "rg": r.rg,
+                "rg": r.rg if r.rg is not None else "",
                 "orgao_emissor": r.orgao_emissor,
                 "estado_civil": r.estado_civil,
                 "nacionalidade": r.nacionalidade,
@@ -49,6 +49,7 @@ class RequerenteService:
                 "num_imovel": r.num_imovel,
                 "complemento": r.complemento if r.complemento is not None else "",
                 "estado": r.estado,
+                "bairro": r.bairro,
                 "cidade": r.cidade
             }
             for r in advogado.requerentes

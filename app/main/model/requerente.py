@@ -6,10 +6,8 @@ class Requerente(db.Model):
     __name__ = 'requerente'
 
     # PKs and related stuff
-    pessoa_fisica = db.Column(db.CHAR, nullable=False, unique=False)
     cpf_cnpj = db.Column(db.String(50), nullable=False, unique=False)
     id_requerente = db.Column(db.Integer, nullable=False, primary_key=True, autoincrement=True)
-
 
     # main fields
     nome = db.Column(db.String(50), nullable=False, unique=False)
@@ -21,11 +19,11 @@ class Requerente(db.Model):
     estado_civil = db.Column(db.String(50), nullable=False)
     nacionalidade = db.Column(db.String(50), nullable=False)
     profissao = db.Column(db.String(50), nullable=False)
-    cep = db.Column(db.String(50), nullable=False)
-    logradouro = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(50), nullable=False, unique=True)
 
-    # address fields (one-to-one so in the same table)
+    # address fields (one-to-one so in the same table
+    cep = db.Column(db.String(50), nullable=False)
+    logradouro = db.Column(db.String(50), nullable=False)
     num_imovel = db.Column(db.String(50), nullable=False)
     complemento = db.Column(db.String(50), nullable=True)
     bairro = db.Column(db.String(50), nullable = False)
@@ -36,22 +34,21 @@ class Requerente(db.Model):
     _password_hash = db.Column(db.String(60), nullable=True)
     _salt = db.Column(db.LargeBinary(29), nullable=True)
     _access_token = db.Column(db.String(32), nullable=True, unique=True)
-    
+
     # FKs
     advogado_id = db.Column(db.Integer, db.ForeignKey('advogado.id_advogado'), nullable=False)
     demandas = db.relationship('Demanda', backref='Requerente', lazy=True)
 
 
-    def __init__(self, 
-        pessoa_fisica, cpf_cnpj, nome,
+    def __init__(self,
+        cpf_cnpj, nome,
         nome_social, genero, idoso, rg,
         orgao_emissor, estado_civil, nacionalidade,
         profissao, cep, logradouro,
-        email, num_imovel, complemento, 
+        email, num_imovel, complemento,
         bairro, estado, cidade,
         advogado_id):
-        
-        self.pessoa_fisica = pessoa_fisica
+
         self.cpf_cnpj = cpf_cnpj
         self.nome = nome
         self.nome_social = nome_social
@@ -89,7 +86,7 @@ class Requerente(db.Model):
 
     def auth(self, token):
         return token == self._access_token
-    
+
     def update_password(self, new_password):
         self._salt = crypt_utils.gensalt()
         self._password_hash = crypt_utils.hash_password(new_password, self._salt).decode('utf-8')

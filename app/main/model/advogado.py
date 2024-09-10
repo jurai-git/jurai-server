@@ -38,8 +38,8 @@ class Advogado(db.Model):
         return self.username
 
     def update_password(self, new_password):
-        self._salt = self.gensalt()
-        self._password_hash = self.hash_password(new_password, self._salt).decode('utf-8')
+        self._salt = crypt_utils.gensalt()
+        self._password_hash = crypt_utils.hash_password(new_password, self._salt).decode('utf-8')
 
     @property
     def password_hash(self):
