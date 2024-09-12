@@ -4,6 +4,10 @@
 *.csv
 datasets/
 
+# kde stuff
+*.kate-swp
+.kdev4/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -119,3 +119,4 @@ def get_demandas():
 
         return jsonify({"message": "SUCCESS", "demanda_list": demanda_service.get_demandas(requerente)})
 
+
