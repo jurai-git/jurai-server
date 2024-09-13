@@ -1,17 +1,50 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, json, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
 from sqlalchemy.exc import IntegrityError
 
 requerente_bp = Blueprint('requerente', __name__)
 CORS(requerente_bp)
 
+@cross_origin
+@requerente_bp.route("/update", methods=['PUT'])
+def update_requerente():
+    data = request.get_json()
+
+    id_requerente = data.get("id_requerente")
+
+    access_token = data.get("access_token")
+
+    # verifications
+    if not id_requerente:
+        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
+
+    with current_app.app_context():
+        advogado_service = current_app.extensions['advogado_service']
+        requerente_service = current_app.extensions['requerente_service']
+
+        # get advogado
+        advogado = advogado_service.find_by_token(access_token)
+        if advogado is None:
+            return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
+
+        # get requerente
+        requerente = requerente_service.get_by_id(id_requerente)
+        if requerente is None:
+            return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
+
+        try:
+            requerente_service.update_requerente(advogado, requerente, data)
+        except PermissionError:
+            return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
+        return jsonify({"message": "SUCCESS", "requerente": requerente_service.serialize(requerente)}), 200
+
+
 
 @cross_origin()
 @requerente_bp.route("/new", methods=['POST'])
 def create_requerente():
     # gather data
-    request.json
-    data = request.json
+    data = request.get_json()
 
     cpf_cnpj = data.get("cpf_cnpj")
     nome = data.get("nome")
@@ -32,23 +65,13 @@ def create_requerente():
     cidade = data.get("cidade")
     bairro = data.get("bairro")
 
-
-    """
-            cpf_cnpj, nome,
-            nome_social, genero, idoso, rg,
-            orgao_emissor, estado_civil, nacionalidade,
-            profissao, cep, logradouro,
-            email, num_imovel, complemento,
-            bairro, estado, cidade, advogado_id
-    """
     advogado_token = data.get('access_token')
 
     # verifications
     if not cpf_cnpj or not nome or not genero or not rg or not orgao_emissor or not estado_civil or not nacionalidade or not profissao or not cep or not logradouro or not num_imovel or not email or not bairro or not estado or not cidade:
-
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
     if not idoso:
-        idoso = True
+        idoso = False
 
     # store in db
     with current_app.app_context():
@@ -78,7 +101,7 @@ def create_requerente():
 @requerente_bp.route("/remove", methods=['DELETE'])
 def delete_requerente():
     # gather data
-    data = request.json
+    data = request.get_json()
     advogado_token = data.get('access_token')
     requerente_id = data.get('requerente_id')
 

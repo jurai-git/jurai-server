@@ -17,7 +17,7 @@ class Demanda(db.Model):
     segredo_justica = db.Column(db.Boolean, nullable=False)
     valor_acao = db.Column(db.Double, nullable=False)
     dispensa_legal = db.Column(db.Boolean, nullable=False)
-    justica_gratuira = db.Column(db.Boolean, nullable=False)
+    justica_gratuita = db.Column(db.Boolean, nullable=False)
     guia_custas = db.Column(db.Boolean, nullable=False)
     resumo = db.Column(db.String(4096), nullable=False)
 
@@ -28,7 +28,7 @@ class Demanda(db.Model):
         foro, competencia, classe,
         assunto_principal, pedido_liminar, 
         segredo_justica, valor_acao,
-        dispensa_legal, justica_gratuira,
+        dispensa_legal, justica_gratuita,
         guia_custas, resumo,
         requerente_cpf_cnpj):
 
@@ -41,7 +41,7 @@ class Demanda(db.Model):
         self.segredo_justica = segredo_justica
         self.valor_acao = valor_acao
         self.dispensa_legal = dispensa_legal
-        self.justica_gratuira = justica_gratuira
+        self.justica_gratuita = justica_gratuita
         self.guia_custas = guia_custas
         self.resumo = resumo
         self.requerente_cpf_cnpj = requerente_cpf_cnpj

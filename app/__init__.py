@@ -45,14 +45,16 @@ def create_app(config_class=Config):
     def before_request():
         request.charset = 'utf-8'
 
-    @app.route("/teapot/")
+    @app.route("/", methods=['GET'])
     def index():
+        return jsonify({"url_map": app.url_map.__str__()}), 200
+
+
+    @app.route("/teapot/")
+    def teapot():
         return jsonify({"message": "IM_A_TEAPOT"}), 418
 
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
-
-    print("routes: ")
-    print(app.url_map)
 
     return app
