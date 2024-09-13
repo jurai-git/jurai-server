@@ -7,7 +7,7 @@ CORS(demanda_bp)
 @cross_origin()
 @demanda_bp.route("/new", methods=['POST'])
 def create_demanda():
-    data = request.json
+    data = request.get_json()
 
     advogado_token = data.get("access_token")
     requerente_pk = data.get("requerente_cpf_cnpj")

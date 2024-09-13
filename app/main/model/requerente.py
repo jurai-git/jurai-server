@@ -37,7 +37,7 @@ class Requerente(db.Model):
 
     # FKs
     advogado_id = db.Column(db.Integer, db.ForeignKey('advogado.id_advogado'), nullable=False)
-    demandas = db.relationship('Demanda', backref='Requerente', lazy=True)
+    demandas = db.relationship('Demanda', backref='requerente', lazy=True)
 
 
     def __init__(self,

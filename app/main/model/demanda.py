@@ -10,6 +10,7 @@ class Demanda(db.Model):
     # Fields
     identificacao = db.Column(db.String(128), nullable=False)
     foro = db.Column(db.String(50), nullable = False)
+    status = db.Column(db.String(50), nullable = True)
     competencia = db.Column(db.String(50), nullable=False)
     classe = db.Column(db.String(50), nullable=False)
     assunto_principal = db.Column(db.String(512), nullable=False)
@@ -30,7 +31,7 @@ class Demanda(db.Model):
         segredo_justica, valor_acao,
         dispensa_legal, justica_gratuita,
         guia_custas, resumo,
-        requerente_cpf_cnpj):
+        requerente_cpf_cnpj, status):
 
         self.identificacao = identificacao
         self.foro = foro
@@ -45,3 +46,4 @@ class Demanda(db.Model):
         self.guia_custas = guia_custas
         self.resumo = resumo
         self.requerente_cpf_cnpj = requerente_cpf_cnpj
+        self.status = status

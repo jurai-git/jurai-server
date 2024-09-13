@@ -2,16 +2,16 @@ from flask_sqlalchemy import SQLAlchemy
 from app.main.model.requerente import Requerente
 
 class RequerenteService:
-    
+
     def __init__(self, db: SQLAlchemy):
         self.db = db
 
-    def create_requerente(self, 
+    def create_requerente(self,
         cpf_cnpj, nome,
         nome_social, genero, idoso, rg,
         orgao_emissor, estado_civil, nacionalidade,
         profissao, cep, logradouro,
-        email, num_imovel, complemento, 
+        email, num_imovel, complemento,
         bairro, estado, cidade,
         advogado_id):
 
@@ -100,18 +100,19 @@ class RequerenteService:
         try:
             self.db.session.commit()
         except Exception as e:
+            self.db.session.rollback()
             raise e
 
-    
+
     def delete_requerente(self, advogado, requerente):
         if not requerente.advogado_id == advogado.id_advogado:
             raise PermissionError("This advogado doesn't have this requerente.")
-        
+
         self.db.session.delete(requerente)
         self.db.session.commit()
 
     def get_by_id(self, id_query):
         return self.db.session.query(Requerente).filter_by(id_requerente=id_query).first()
-        
+
     def get_by_token(self, access_token):
         return self.db.session.query(Requerente).filter_by(_access_token=access_token).first()

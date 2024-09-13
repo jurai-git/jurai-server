@@ -12,13 +12,13 @@ class DemandaService:
         segredo_justica, valor_acao,
         dispensa_legal, justica_gratuira,
         guia_custas, resumo,
-        requerente_cpf_cnpj
+        requerente_cpf_cnpj, status
         ):
         
         d = Demanda(
             identificacao, foro, competencia, classe, assunto_principal, pedido_liminar,
             segredo_justica, valor_acao, dispensa_legal, justica_gratuira,
-            guia_custas, resumo, requerente_cpf_cnpj
+            guia_custas, resumo, requerente_cpf_cnpj, status
         )
 
         self.db.session.add(d)
@@ -42,6 +42,7 @@ class DemandaService:
                 "justica_gratuita": d.justica_gratuira,
                 "guia_custas": d.guia_custas,
                 "resumo": d.resumo,
+                "status": d.status
             }
             for d in requerente.demandas
         ]
