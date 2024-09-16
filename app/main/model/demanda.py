@@ -30,8 +30,7 @@ class Demanda(db.Model):
         assunto_principal, pedido_liminar, 
         segredo_justica, valor_acao,
         dispensa_legal, justica_gratuita,
-        guia_custas, resumo,
-        requerente_cpf_cnpj, status):
+        guia_custas, resumo, status, id_requerente):
 
         self.identificacao = identificacao
         self.foro = foro
@@ -45,5 +44,5 @@ class Demanda(db.Model):
         self.justica_gratuita = justica_gratuita
         self.guia_custas = guia_custas
         self.resumo = resumo
-        self.requerente_cpf_cnpj = requerente_cpf_cnpj
         self.status = status
+        self.id_requerente = id_requerente

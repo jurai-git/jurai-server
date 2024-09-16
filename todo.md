@@ -1,2 +1,3 @@
 - importante: criar testes unitários para os controllers
 - implementar controller e service para demandas
+- importante: colocar criptografia no access_token

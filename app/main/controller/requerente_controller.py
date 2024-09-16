@@ -2,6 +2,8 @@ from flask import Blueprint, json, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
 from sqlalchemy.exc import IntegrityError
 
+from app.main.service.advogado_service import AdvogadoService
+
 requerente_bp = Blueprint('requerente', __name__)
 CORS(requerente_bp)
 
@@ -127,19 +129,30 @@ def delete_requerente():
 @requerente_bp.route("/demandas", methods=['POST'])
 def get_demandas():
     data = request.json
-    requerente_token = data.get('access_token')
+    advogado_token = data.get('access_token')
+    id_requerente = data.get("id_requerente")
 
-    if not requerente_token:
+    if not id_requerente:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
 
     with current_app.app_context():
+        advogado_service: AdvogadoService = current_app.extensions['advogado_service']
         requerente_service = current_app.extensions['requerente_service']
         demanda_service = current_app.extensions['demanda_service']
 
-        requerente = requerente_service.get_by_token(requerente_token)
-        if not requerente:
+        advogado = advogado_service.find_by_token(advogado_token)
+
+        if not advogado:
             return jsonify({"ERROR_INVALID_CREDENTIALS"}), 401
 
-        return jsonify({"message": "SUCCESS", "demanda_list": demanda_service.get_demandas(requerente)})
+        requerente = requerente_service.get_by_id(id_requerente)
+
+        if not requerente:
+            return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
+
+        if not requerente.advogado_id == advogado.id_advogado:
+            return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
+
+        return jsonify({"message": "SUCCESS", "demanda_list": demanda_service.get_demandas(requerente)}), 200
 
 

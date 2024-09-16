@@ -10,26 +10,24 @@ class DemandaService:
         foro, competencia, classe,
         assunto_principal, pedido_liminar, 
         segredo_justica, valor_acao,
-        dispensa_legal, justica_gratuira,
-        guia_custas, resumo,
-        requerente_cpf_cnpj, status
+        dispensa_legal, justica_gratuita,
+        guia_custas, resumo, status, id_requerente
         ):
         
         d = Demanda(
             identificacao, foro, competencia, classe, assunto_principal, pedido_liminar,
-            segredo_justica, valor_acao, dispensa_legal, justica_gratuira,
-            guia_custas, resumo, requerente_cpf_cnpj, status
+            segredo_justica, valor_acao, dispensa_legal, justica_gratuita,
+            guia_custas, resumo, status, id_requerente
         )
 
         self.db.session.add(d)
         self.db.session.commit()
 
         return d
-    
-    def get_demandas(self, requerente: Requerente):
-        return [
-            {
-                "id": d.id_advogado,
+
+    def serialize(self, d: Demanda):
+        return {
+                "id": d.id_demanda,
                 "identificacao": d.identificacao,
                 "foro": d.foro,
                 "competencia": d.competencia,
@@ -39,13 +37,14 @@ class DemandaService:
                 "segredo_justica": d.segredo_justica,
                 "valor_acao": d.valor_acao,
                 "dispensa_legal": d.dispensa_legal,
-                "justica_gratuita": d.justica_gratuira,
+                "justica_gratuita": d.justica_gratuita,
                 "guia_custas": d.guia_custas,
                 "resumo": d.resumo,
                 "status": d.status
             }
-            for d in requerente.demandas
-        ]
+    
+    def get_demandas(self, requerente: Requerente):
+        return [self.serialize(d) for d in requerente.demandas]
     
     def delete_demanda(self, demanda: Demanda, requerente: Requerente):
         if not demanda.requerente_cpf_cnpj == requerente.cpf_cnpj:

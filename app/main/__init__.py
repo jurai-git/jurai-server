@@ -12,3 +12,6 @@ bp.register_blueprint(ai_bp, url_prefix='/ai')
 
 from app.main.controller.requerente_controller import requerente_bp
 bp.register_blueprint(requerente_bp, url_prefix='/requerente')
+
+from app.main.controller.demanda_controller import demanda_bp
+bp.register_blueprint(demanda_bp, url_prefix="/demanda")
