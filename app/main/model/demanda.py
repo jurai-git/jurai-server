@@ -19,7 +19,7 @@ class Demanda(db.Model):
     valor_acao = db.Column(db.Double, nullable=False)
     dispensa_legal = db.Column(db.Boolean, nullable=False)
     justica_gratuita = db.Column(db.Boolean, nullable=False)
-    guia_custas = db.Column(db.Boolean, nullable=False)
+    guia_custas = db.Column(db.Boolean, nullable=False) # TODO: trocar para arquivo
     resumo = db.Column(db.String(4096), nullable=False)
 
     # FKs
