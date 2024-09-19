@@ -20,8 +20,12 @@ class DemandaService:
             guia_custas, resumo, status, id_requerente
         )
 
-        self.db.session.add(d)
-        self.db.session.commit()
+        try:
+            self.db.session.add(d)
+            self.db.session.commit()
+        except Exception as e:
+            self.db.session.rollback()
+            raise e
 
         return d
 
@@ -47,11 +51,15 @@ class DemandaService:
         return [self.serialize(d) for d in requerente.demandas]
     
     def delete_demanda(self, demanda: Demanda, requerente: Requerente):
-        if not demanda.requerente_cpf_cnpj == requerente.cpf_cnpj:
+        if not demanda.id_requerente == requerente.id_requerente:
             raise PermissionError("This requerente doesn't own this demanda")
         
-        self.db.session.delete(demanda)
-        self.db.session.commit()
-    
+        try:
+            self.db.session.delete(demanda)
+            self.db.session.commit()
+        except Exception as e:
+            self.db.session.rollback()
+            raise e
+
     def get_by_id(self, id_query):
         return self.db.query(Demanda).filter_by(id=id_query).first()

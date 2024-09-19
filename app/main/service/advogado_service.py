@@ -15,8 +15,12 @@ class AdvogadoService:
     def create_advogado(self, username, pwd, oab, email):
         user = Advogado(username=username, email=email, pwd=pwd, oab=oab)
 
-        self.db.session.add(user)
-        self.db.session.commit()
+        try:
+            self.db.session.add(user)
+            self.db.session.commit()
+        except Exception as e:
+            self.db.session.rollback()
+            raise e
 
         return user
 
@@ -48,7 +52,12 @@ class AdvogadoService:
         if 'password' in kwargs:
             advogado.update_password(kwargs['password'])
 
-        self.db.session.commit()
+        try:
+            self.db.session.commit()
+        except Exception as e:
+            self.db.session.rollback()
+            raise e
+
         return advogado
 
     def get_all(self):

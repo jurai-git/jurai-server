@@ -24,8 +24,12 @@ class RequerenteService:
             bairro, estado, cidade, advogado_id
         )
 
-        self.db.session.add(r)
-        self.db.session.commit()
+        try:
+            self.db.session.add(r)
+            self.db.session.commit()
+        except Exception as e:
+            self.db.session.rollback()
+            raise e
 
         return r
 
@@ -108,8 +112,12 @@ class RequerenteService:
         if not requerente.advogado_id == advogado.id_advogado:
             raise PermissionError("This advogado doesn't have this requerente.")
 
-        self.db.session.delete(requerente)
-        self.db.session.commit()
+        try:
+            self.db.session.delete(requerente)
+            self.db.session.commit()
+        except Exception as e:
+            self.db.session.rollback()
+            raise e
 
     def get_by_id(self, id_query):
         return self.db.session.query(Requerente).filter_by(id_requerente=id_query).first()

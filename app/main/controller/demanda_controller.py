@@ -53,19 +53,22 @@ def create_demanda():
         advogado_service: AdvogadoService = current_app.extensions['advogado_service']
         requerente_service: RequerenteService = current_app.extensions['requerente_service']
         demanda_service: DemandaService = current_app.extensions['demanda_service']
+        try:
+            advogado = advogado_service.find_by_token(advogado_token)
+            if advogado is None:
+                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
 
-        advogado = advogado_service.find_by_token(advogado_token)
-        if advogado is None:
-            return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
+            print(id_requerente)
+            requerente = requerente_service.get_by_id(id_requerente)
+            if requerente is None:
+                return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
 
-        print(id_requerente)
-        requerente = requerente_service.get_by_id(id_requerente)
-        if requerente is None:
-            return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
+            if not requerente.advogado_id == advogado.id_advogado:
+                return jsonify({"message": "ERROR_PERMISSION_DENIED"}), 403
 
-        if not requerente.advogado_id == advogado.id_advogado:
-            return jsonify({"message": "ERROR_PERMISSION_DENIED"}), 403
+            d = demanda_service.create_demanda(identificacao=identificacao, foro=foro, status=status, competencia=competencia, classe=classe, assunto_principal=assunto_principal, pedido_liminar=pedido_liminar, segredo_justica=segredo_justica, valor_acao=valor_acao, dispensa_legal=dispensa_legal, justica_gratuita=justica_gratuita, guia_custas=guia_custas, resumo=resumo, id_requerente=id_requerente)
 
-        d = demanda_service.create_demanda(identificacao=identificacao, foro=foro, status=status, competencia=competencia, classe=classe, assunto_principal=assunto_principal, pedido_liminar=pedido_liminar, segredo_justica=segredo_justica, valor_acao=valor_acao, dispensa_legal=dispensa_legal, justica_gratuita=justica_gratuita, guia_custas=guia_custas, resumo=resumo, id_requerente=id_requerente)
-
-        return jsonify({"message": "SUCCESS", "demanda": demanda_service.serialize(d)})
+            return jsonify({"message": "SUCCESS", "demanda": demanda_service.serialize(d)})
+        except Exception as e:
+            print(e)
+            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500

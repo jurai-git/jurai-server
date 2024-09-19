@@ -9,8 +9,9 @@ from app.main.service.advogado_service import AdvogadoService
 from app.main.service.requerente_service import RequerenteService
 from app.main.service.demanda_service import DemandaService
 from app.main.extensions import db
+from app.main import get_ai_bp
 
-def create_app(config_class=Config):
+def create_app(use_ai=True, config_class=Config):
     # create the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
@@ -23,7 +24,19 @@ def create_app(config_class=Config):
     password = os.getenv("MYSQL_PASSWORD")
     db_name = os.getenv("MYSQL_DB")
     app.config['SQLALCHEMY_DATABASE_URI'] = ("mysql+mysqlconnector://" + user + ":" + password + "@" + host + ":3306/" + db_name)
-    
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_size': 10,              # Set the pool size (number of connections to keep in the pool)
+        'max_overflow': 5,            # Allow 5 additional connections beyond the pool_size
+        'pool_timeout': 30,           # Timeout for getting a connection from the pool (in seconds)
+        'pool_recycle': 1800,         # Recycle connections after 30 minutes (1800 seconds)
+        'echo': False,                # Enable SQLAlchemy logging for debugging (set to True if needed)
+        'pool_pre_ping': True,         # Check if connections are still alive before using them
+        'connect_args': {
+            'connect_timeout': 5,  # Timeout for connection attempts
+        }
+    }
+
+
     db.init_app(app)
     app.extensions['db'] = db
     with app.app_context():
@@ -40,7 +53,6 @@ def create_app(config_class=Config):
     demanda_service = DemandaService(db)
     app.extensions['demanda_service'] = demanda_service
 
-
     @app.before_request
     def before_request():
         request.charset = 'utf-8'
@@ -54,7 +66,11 @@ def create_app(config_class=Config):
     def teapot():
         return jsonify({"message": "IM_A_TEAPOT"}), 418
 
-    from app.main import bp as main_bp
+    from app.main import main_bp as main_bp
     app.register_blueprint(main_bp)
+
+    if use_ai:
+        print("using ai")
+        app.register_blueprint(get_ai_bp())
 
     return app

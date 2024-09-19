@@ -21,24 +21,28 @@ def update_requerente():
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
 
     with current_app.app_context():
-        advogado_service = current_app.extensions['advogado_service']
-        requerente_service = current_app.extensions['requerente_service']
-
-        # get advogado
-        advogado = advogado_service.find_by_token(access_token)
-        if advogado is None:
-            return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
-
-        # get requerente
-        requerente = requerente_service.get_by_id(id_requerente)
-        if requerente is None:
-            return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
-
         try:
-            requerente_service.update_requerente(advogado, requerente, data)
-        except PermissionError:
-            return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
-        return jsonify({"message": "SUCCESS", "requerente": requerente_service.serialize(requerente)}), 200
+            advogado_service = current_app.extensions['advogado_service']
+            requerente_service = current_app.extensions['requerente_service']
+
+            # get advogado
+            advogado = advogado_service.find_by_token(access_token)
+            if advogado is None:
+                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
+
+            # get requerente
+            requerente = requerente_service.get_by_id(id_requerente)
+            if requerente is None:
+                return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
+
+            try:
+                requerente_service.update_requerente(advogado, requerente, data)
+            except PermissionError:
+                return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
+            return jsonify({"message": "SUCCESS", "requerente": requerente_service.serialize(requerente)}), 200
+        except Exception as e:
+            print(e)
+            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 
 
@@ -77,26 +81,30 @@ def create_requerente():
 
     # store in db
     with current_app.app_context():
-        advogado_service = current_app.extensions['advogado_service']
-        requerente_service = current_app.extensions['requerente_service']
-
-        advogado = advogado_service.find_by_token(advogado_token)
-        if advogado is None:
-            return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
-
-        id = advogado.id_advogado
         try:
-            requerente_service.create_requerente(
-                cpf_cnpj=cpf_cnpj, nome=nome, nome_social=nome_social,
-                genero=genero, idoso=idoso, rg=rg, orgao_emissor=orgao_emissor, estado_civil=estado_civil,
-                nacionalidade=nacionalidade, profissao=profissao, cep=cep, logradouro=logradouro,
-                email=email, num_imovel=num_imovel, complemento=complemento, bairro=bairro,
-                estado=estado, cidade=cidade, advogado_id=id
-            )
-        except IntegrityError as e:
-            print(e._message)
-            return jsonify({"message": "REQUERENTE_ALREADY_EXISTS"}), 409 # teremos que mudar a PK no futuro
-        return jsonify({"message": "SUCCESS"}), 201
+            advogado_service = current_app.extensions['advogado_service']
+            requerente_service = current_app.extensions['requerente_service']
+
+            advogado = advogado_service.find_by_token(advogado_token)
+            if advogado is None:
+                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
+
+            id = advogado.id_advogado
+            try:
+                requerente_service.create_requerente(
+                    cpf_cnpj=cpf_cnpj, nome=nome, nome_social=nome_social,
+                    genero=genero, idoso=idoso, rg=rg, orgao_emissor=orgao_emissor, estado_civil=estado_civil,
+                    nacionalidade=nacionalidade, profissao=profissao, cep=cep, logradouro=logradouro,
+                    email=email, num_imovel=num_imovel, complemento=complemento, bairro=bairro,
+                    estado=estado, cidade=cidade, advogado_id=id
+                )
+            except IntegrityError as e:
+                print(e._message)
+                return jsonify({"message": "REQUERENTE_ALREADY_EXISTS"}), 409 # teremos que mudar a PK no futuro
+            return jsonify({"message": "SUCCESS"}), 201
+        except Exception as e:
+            print(e)
+            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 
 @cross_origin()
@@ -111,18 +119,22 @@ def delete_requerente():
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
 
     with current_app.app_context():
-        advogado_service = current_app.extensions['advogado_service']
-        requerente_service = current_app.extensions['requerente_service']
-        advogado = advogado_service.find_by_token(advogado_token)
-        if not advogado:
-            return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
-
-        requerente = requerente_service.get_by_id(requerente_id)
         try:
-            requerente_service.delete_requerente(advogado, requerente)
-            return jsonify({"message": "SUCCESS"}), 200
-        except:
-            return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
+            advogado_service = current_app.extensions['advogado_service']
+            requerente_service = current_app.extensions['requerente_service']
+            advogado = advogado_service.find_by_token(advogado_token)
+            if not advogado:
+                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
+
+            requerente = requerente_service.get_by_id(requerente_id)
+            try:
+                requerente_service.delete_requerente(advogado, requerente)
+                return jsonify({"message": "SUCCESS"}), 200
+            except:
+                return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
+        except Exception as e:
+            print(e)
+            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 
 @cross_origin()
@@ -136,23 +148,27 @@ def get_demandas():
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
 
     with current_app.app_context():
-        advogado_service: AdvogadoService = current_app.extensions['advogado_service']
-        requerente_service = current_app.extensions['requerente_service']
-        demanda_service = current_app.extensions['demanda_service']
+        try:
+            advogado_service: AdvogadoService = current_app.extensions['advogado_service']
+            requerente_service = current_app.extensions['requerente_service']
+            demanda_service = current_app.extensions['demanda_service']
 
-        advogado = advogado_service.find_by_token(advogado_token)
+            advogado = advogado_service.find_by_token(advogado_token)
 
-        if not advogado:
-            return jsonify({"ERROR_INVALID_CREDENTIALS"}), 401
+            if not advogado:
+                return jsonify({"ERROR_INVALID_CREDENTIALS"}), 401
 
-        requerente = requerente_service.get_by_id(id_requerente)
+            requerente = requerente_service.get_by_id(id_requerente)
 
-        if not requerente:
-            return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
+            if not requerente:
+                return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
 
-        if not requerente.advogado_id == advogado.id_advogado:
-            return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
+            if not requerente.advogado_id == advogado.id_advogado:
+                return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
 
-        return jsonify({"message": "SUCCESS", "demanda_list": demanda_service.get_demandas(requerente)}), 200
+            return jsonify({"message": "SUCCESS", "demanda_list": demanda_service.get_demandas(requerente)}), 200
+        except Exception as e:
+            print(e)
+            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 
