@@ -72,3 +72,46 @@ def create_demanda():
         except Exception as e:
             print(e)
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
+@cross_origin
+@demanda_bp.route("/update", methods=['PUT'])
+def update_demanda():
+    data = request.json
+
+    id_demanda = data.get("id_demanda")
+    id_requerente = data.get("id_requerente")
+    access_token = data.get("access_token")
+
+    if not id_requerente or not id_demanda:
+        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
+
+    with current_app.app_context():
+        try:
+            advogado_service = current_app.extensions['advogado_service']
+            requerente_service = current_app.extensions['requerente_service']
+            demanda_service = current_app.extensions['demanda_service']
+
+            advogado = advogado_service.find_by_token(access_token)
+            if advogado is None:
+                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
+
+            requerente  = requerente_service.get_by_id(id_requerente)
+            if requerente is None:
+                return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
+
+            if not requerente.advogado_id == advogado.id_advogado:
+                print("advogado doesnt own requerente")
+                return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
+
+            demanda = demanda_service.get_by_id(id_demanda)
+            if demanda is None:
+                return jsonify({"message": "ERROR_DEMANDA_DOESNT_EXIST"}), 404
+
+            try:
+                demanda_service.update_demanda(requerente, demanda, data)
+            except PermissionError as e:
+                return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
+        except Exception as e:
+            print(e)
+            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
+
+        return jsonify({"message": "SUCCESS"}), 200
