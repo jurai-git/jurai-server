@@ -23,6 +23,7 @@ class Demanda(db.Model):
     resumo = db.Column(db.String(4096), nullable=False)
 
     # FKs
+    ai_data = db.relationship('AiData', back_populates='demanda', uselist=False)
     id_requerente = db.Column(db.Integer, db.ForeignKey('requerente.id_requerente'), nullable=False)
 
     def __init__(self, identificacao,
