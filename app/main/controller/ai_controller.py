@@ -28,9 +28,10 @@ prob_tokenizer = build_tokenizer_from_csv(
 def probability_model():
     try:
         text = ''
+        json = request.get_json()
 
-        if 'text' in request.form:
-            text = request.form['text'].strip()
+        if 'text' in json:
+            text = json.get('text').strip()
         elif 'pdf' in request.files:
             text = normalizer.get_ementa(pdf.as_text(request.files['pdf'])).strip()
         else:
