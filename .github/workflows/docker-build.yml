@@ -1,0 +1,38 @@
+name: Build and Run Flask App
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Build Docker image
+      run: |
+        docker build -t jurai-web .
+
+    - name: Run Docker container
+      run: |
+        docker run -d -p 8000:8000 jurai-web
+
+    - name: Check application health
+      run: |
+        sleep 10
+        curl -f http://localhost:8000/ || exit 1
+
+    - name: Stop and remove Docker container
+      run: |
+        docker stop flask-app
+        docker rm flask-app
