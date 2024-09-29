@@ -25,14 +25,14 @@ def create_app(use_ai=True, config_class=Config):
     db_name = os.getenv("MYSQL_DB")
     app.config['SQLALCHEMY_DATABASE_URI'] = ("mysql+mysqlconnector://" + user + ":" + password + "@" + host + ":3306/" + db_name)
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_size': 10,              # Set the pool size (number of connections to keep in the pool)
-        'max_overflow': 5,            # Allow 5 additional connections beyond the pool_size
-        'pool_timeout': 30,           # Timeout for getting a connection from the pool (in seconds)
-        'pool_recycle': 1800,         # Recycle connections after 30 minutes (1800 seconds)
-        'echo': False,                # Enable SQLAlchemy logging for debugging (set to True if needed)
-        'pool_pre_ping': True,         # Check if connections are still alive before using them
+        'pool_size': 10,
+        'max_overflow': 5,
+        'pool_timeout': 30,
+        'pool_recycle': 1800,
+        'echo': False,
+        'pool_pre_ping': True,
         'connect_args': {
-            'connect_timeout': 5,  # Timeout for connection attempts
+            'connect_timeout': 5,
         }
     }
 
