@@ -22,15 +22,30 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t jurai-web .
-
     - name: Run Docker container
-      run: |
-        docker run -d -p 8000:8000 jurai-web
+    env:
+        MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+        MYSQL_DB: ${{ secrets.MYSQL_DB }}
+        MYSQL_USER: ${{ secrets.MYSQL_USER }}
+        MYSQL_PASSWORD: ${{ secrets.MYSQL_PWD }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+    run: |
+        docker run -d -p 8000:8000 --name flask-app \
+        -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
+        -e MYSQL_DB=${{ secrets.MYSQL_DB }} \
+        -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
+        -e MYSQL_PASSWORD=${{ secrets.MYSQL_PWD }} \
+        -e SECRET_KEY=${{ secrets.SECRET_KEY }} \
+        jurai-web
 
     - name: Check application health
       run: |
         sleep 10
         curl -f http://localhost:8000/ || exit 1
+
+    - name: Show uWSGI logs
+      run: |
+        docker logs flask-app
 
     - name: Stop and remove Docker container
       run: |
