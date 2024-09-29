@@ -23,13 +23,13 @@ jobs:
       run: |
         docker build -t jurai-web .
     - name: Run Docker container
-    env:
+      env:
         MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
         MYSQL_DB: ${{ secrets.MYSQL_DB }}
         MYSQL_USER: ${{ secrets.MYSQL_USER }}
         MYSQL_PASSWORD: ${{ secrets.MYSQL_PWD }}
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
-    run: |
+      run: |
         docker run -d -p 8000:8000 --name flask-app \
         -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
         -e MYSQL_DB=${{ secrets.MYSQL_DB }} \
@@ -37,6 +37,10 @@ jobs:
         -e MYSQL_PASSWORD=${{ secrets.MYSQL_PWD }} \
         -e SECRET_KEY=${{ secrets.SECRET_KEY }} \
         jurai-web
+
+    - name: Wait for app to start
+      run: |
+        sleep 15
 
     - name: Check application health
       run: |
