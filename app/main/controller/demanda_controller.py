@@ -119,7 +119,7 @@ def update_demanda():
 
 
 @cross_origin()
-@demanda_bp.route("/remove", methods=['DELETE'])
+@demanda_bp.route("/delete", methods=['DELETE'])
 def delete_demanda():
     data = request.get_json()
 
