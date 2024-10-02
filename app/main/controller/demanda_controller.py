@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
 
 from app.main.model.demanda import Demanda
+from app.main.service import requerente_service
 from app.main.service.advogado_service import AdvogadoService
 from app.main.service.demanda_service import DemandaService
 from app.main.service.requerente_service import RequerenteService
@@ -66,7 +67,7 @@ def create_demanda():
             if not requerente.advogado_id == advogado.id_advogado:
                 return jsonify({"message": "ERROR_PERMISSION_DENIED"}), 403
 
-            d = demanda_service.create_demanda(identificacao=identificacao, foro=foro, status=status, competencia=competencia, classe=classe, assunto_principal=assunto_principal, pedido_liminar=pedido_liminar, segredo_justica=segredo_justica, valor_acao=valor_acao, dispensa_legal=dispensa_legal, justica_gratuita=justica_gratuita, guia_custas=guia_custas, resumo=resumo, id_requerente=id_requerente)
+            d = demanda_service.create_demanda(identificacao=identificacao, foro=foro, competencia=competencia, classe=classe, assunto_principal=assunto_principal, pedido_liminar=pedido_liminar, segredo_justica=segredo_justica, valor_acao=valor_acao, dispensa_legal=dispensa_legal, justica_gratuita=justica_gratuita, guia_custas=guia_custas, resumo=resumo, id_requerente=id_requerente)
 
             return jsonify({"message": "SUCCESS", "demanda": demanda_service.serialize(d)})
         except Exception as e:
@@ -115,3 +116,32 @@ def update_demanda():
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
         return jsonify({"message": "SUCCESS"}), 200
+
+
+@cross_origin()
+@demanda_bp.route("/remove", methods=['DELETE'])
+def delete_demanda():
+    data = request.get_json()
+
+    demanda_id = data.get('demanda_id')
+    requerente_id = data.get('requerente_id')
+
+    if not demanda_id or not requerente_id:
+        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
+
+    with current_app.app_context():
+        demanda_service: DemandaService = current_app.extensions['demanda_service']
+        requerente_service: RequerenteService = current_app.extensions['requerente_service']
+
+        demanda = demanda_service.get_by_id(demanda_id)
+        requerente = requerente_service.get_by_id(requerente_id)
+
+        if not demanda:
+            return jsonify({'message': 'ERROR_INVALID_ID'}), 404
+
+        try:
+            demanda_service.delete_demanda(demanda, requerente)
+            return jsonify({'message': 'SUCCESS'}), 200
+        except Exception as e:
+            print(f'Error deleting demanda: {e}')
+            return jsonify({'message': 'ERROR_DELETING_DEMANDA', 'error': str(e)}), 500
