@@ -70,11 +70,10 @@ def get_advogado():
             print(e)
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
-
 @cross_origin()
 @advogado_bp.route("/token", methods=['POST'])
 def auth():
-    data = request.json
+    data = request.get_json()
     uname = data.get('username')
     password = data.get('password')
 
