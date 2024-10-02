@@ -64,7 +64,7 @@ class AdvogadoService:
         return self.db.session.query(Advogado).all()
 
     def find_by_id(self, id):
-        return self.db.session.query(Advogado).filter_by(id=id).first()
+        return self.db.session.query(Advogado).filter_by(id_advogado=id).first()
 
     def find_by_uname(self, username):
         return self.db.session.query(Advogado).filter_by(username=username).first()
@@ -74,3 +74,11 @@ class AdvogadoService:
 
     def find_by_email(self, email):
         return self.db.session.query(Advogado).filter_by(email=email).first()
+
+    def delete_advogado(self, advogado):
+        try:
+            self.db.session.delete(advogado)
+            self.db.session.commit()
+        except Exception as e:
+            self.db.session.rollback()
+            raise e
