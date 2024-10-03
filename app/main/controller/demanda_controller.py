@@ -47,7 +47,7 @@ def create_demanda():
     print(f"guia_custas: {guia_custas}")
     print(f"resumo: {resumo}")
 
-    if foro is None or status is None or competencia is None or assunto_principal is None or pedido_liminar is None or segredo_justica is None or valor_acao is None or dispensa_legal is None or justica_gratuita is None or guia_custas is None or resumo is None:
+    if foro is None or status is None or competencia is None or assunto_principal is None or pedido_liminar is None or segredo_justica is None or valor_acao is None or dispensa_legal is None or justica_gratuita is None or guia_custas is None or resumo is None or status is None:
         return jsonify({"message": "REQUIRED_FIELDS_LEFT_EMPTY"}), 400
 
     with current_app.app_context():
@@ -67,7 +67,7 @@ def create_demanda():
             if not requerente.advogado_id == advogado.id_advogado:
                 return jsonify({"message": "ERROR_PERMISSION_DENIED"}), 403
 
-            d = demanda_service.create_demanda(identificacao=identificacao, foro=foro, competencia=competencia, classe=classe, assunto_principal=assunto_principal, pedido_liminar=pedido_liminar, segredo_justica=segredo_justica, valor_acao=valor_acao, dispensa_legal=dispensa_legal, justica_gratuita=justica_gratuita, guia_custas=guia_custas, resumo=resumo, id_requerente=id_requerente)
+            d = demanda_service.create_demanda(identificacao=identificacao, foro=foro, competencia=competencia, classe=classe, assunto_principal=assunto_principal, pedido_liminar=pedido_liminar, segredo_justica=segredo_justica, valor_acao=valor_acao, dispensa_legal=dispensa_legal, justica_gratuita=justica_gratuita, guia_custas=guia_custas, resumo=resumo, status=status, id_requerente=id_requerente)
 
             return jsonify({"message": "SUCCESS", "demanda": demanda_service.serialize(d)})
         except Exception as e:
