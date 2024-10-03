@@ -130,7 +130,7 @@ def delete_requerente():
             try:
                 requerente_service.delete_requerente(advogado, requerente)
                 return jsonify({"message": "SUCCESS"}), 200
-            except:
+            except PermissionError:
                 return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
         except Exception as e:
             print(e)
