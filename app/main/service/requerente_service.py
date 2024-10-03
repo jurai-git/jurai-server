@@ -60,7 +60,8 @@ class RequerenteService:
         return [ self.serialize(r) for r in advogado.requerentes ]
 
     def update_requerente(self, advogado, requerente, data):
-        if not requerente.advogado_id == advogado.id_advogado:
+        if requerente.advogado_id != advogado.id_advogado:
+            print("permission error")
             raise PermissionError("This advogado doesn't have this requerente.")
 
         cpf_cnpj = data.get("cpf_cnpj")
@@ -111,8 +112,9 @@ class RequerenteService:
     def delete_requerente(self, advogado, requerente):
         if not requerente.advogado_id == advogado.id_advogado:
             raise PermissionError("This advogado doesn't have this requerente.")
-
         try:
+            for demanda in requerente.demandas:
+                self.db.session.delete(demanda)
             self.db.session.delete(requerente)
             self.db.session.commit()
         except Exception as e:

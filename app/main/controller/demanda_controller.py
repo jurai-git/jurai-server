@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
 
 from app.main.model.demanda import Demanda
+from app.main.service import requerente_service
+from app.main.service import advogado_service
 from app.main.service.advogado_service import AdvogadoService
 from app.main.service.demanda_service import DemandaService
 from app.main.service.requerente_service import RequerenteService
@@ -46,7 +48,7 @@ def create_demanda():
     print(f"guia_custas: {guia_custas}")
     print(f"resumo: {resumo}")
 
-    if foro is None or status is None or competencia is None or assunto_principal is None or pedido_liminar is None or segredo_justica is None or valor_acao is None or dispensa_legal is None or justica_gratuita is None or guia_custas is None or resumo is None:
+    if foro is None or status is None or competencia is None or assunto_principal is None or pedido_liminar is None or segredo_justica is None or valor_acao is None or dispensa_legal is None or justica_gratuita is None or guia_custas is None or resumo is None or status is None:
         return jsonify({"message": "REQUIRED_FIELDS_LEFT_EMPTY"}), 400
 
     with current_app.app_context():
@@ -66,7 +68,7 @@ def create_demanda():
             if not requerente.advogado_id == advogado.id_advogado:
                 return jsonify({"message": "ERROR_PERMISSION_DENIED"}), 403
 
-            d = demanda_service.create_demanda(identificacao=identificacao, foro=foro, status=status, competencia=competencia, classe=classe, assunto_principal=assunto_principal, pedido_liminar=pedido_liminar, segredo_justica=segredo_justica, valor_acao=valor_acao, dispensa_legal=dispensa_legal, justica_gratuita=justica_gratuita, guia_custas=guia_custas, resumo=resumo, id_requerente=id_requerente)
+            d = demanda_service.create_demanda(identificacao=identificacao, foro=foro, competencia=competencia, classe=classe, assunto_principal=assunto_principal, pedido_liminar=pedido_liminar, segredo_justica=segredo_justica, valor_acao=valor_acao, dispensa_legal=dispensa_legal, justica_gratuita=justica_gratuita, guia_custas=guia_custas, resumo=resumo, status=status, id_requerente=id_requerente)
 
             return jsonify({"message": "SUCCESS", "demanda": demanda_service.serialize(d)})
         except Exception as e:
@@ -75,7 +77,7 @@ def create_demanda():
 @cross_origin
 @demanda_bp.route("/update", methods=['PUT'])
 def update_demanda():
-    data = request.json
+    data = request.get_json()
 
     id_demanda = data.get("id_demanda")
     id_requerente = data.get("id_requerente")
@@ -115,3 +117,38 @@ def update_demanda():
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
         return jsonify({"message": "SUCCESS"}), 200
+
+
+@cross_origin()
+@demanda_bp.route("/delete", methods=['DELETE'])
+def delete_demanda():
+    data = request.get_json()
+
+    demanda_id = data.get('demanda_id')
+    requerente_id = data.get('requerente_id')
+    access_token = data.get('access_token')
+
+    if not demanda_id or not requerente_id or not access_token:
+        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
+
+    with current_app.app_context():
+        demanda_service: DemandaService = current_app.extensions['demanda_service']
+        requerente_service: RequerenteService = current_app.extensions['requerente_service']
+        advogado_service: AdvogadoService = current_app.extensions['advogado_service']
+
+        advogado = advogado_service.find_by_token(access_token)
+        if advogado is None:
+            return jsonify({"message": "ERROR_INVALID_CREDENTIALS"})
+
+        demanda = demanda_service.get_by_id(demanda_id)
+        requerente = requerente_service.get_by_id(requerente_id)
+
+        if not demanda:
+            return jsonify({'message': 'ERROR_INVALID_ID'}), 404
+
+        try:
+            demanda_service.delete_demanda(demanda, requerente)
+            return jsonify({'message': 'SUCCESS'}), 200
+        except Exception as e:
+            print(f'Error deleting demanda: {e}')
+            return jsonify({'message': 'ERROR_DELETING_DEMANDA', 'error': str(e)}), 500

@@ -1,3 +1,5 @@
 - importante: criar testes unitários para os controllers
-- implementar controller e service para demandas
-- importante: colocar criptografia no access_token
+- importante: passar o token pela header
+- importante: colocar criptografia (hash e salt) no access_token
+- implementar service e controller pra ai_data
+- implementar endpoints pra pegar varias infos de uma vez
