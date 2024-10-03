@@ -3,6 +3,7 @@ from flask_cors import CORS, cross_origin
 
 from app.main.model.demanda import Demanda
 from app.main.service import requerente_service
+from app.main.service import advogado_service
 from app.main.service.advogado_service import AdvogadoService
 from app.main.service.demanda_service import DemandaService
 from app.main.service.requerente_service import RequerenteService
@@ -125,13 +126,19 @@ def delete_demanda():
 
     demanda_id = data.get('demanda_id')
     requerente_id = data.get('requerente_id')
+    access_token = data.get('access_token')
 
-    if not demanda_id or not requerente_id:
+    if not demanda_id or not requerente_id or not access_token:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
 
     with current_app.app_context():
         demanda_service: DemandaService = current_app.extensions['demanda_service']
         requerente_service: RequerenteService = current_app.extensions['requerente_service']
+        advogado_service: AdvogadoService = current_app.extensions['advogado_service']
+
+        advogado = advogado_service.find_by_token(access_token)
+        if advogado is None:
+            return jsonify({"message": "ERROR_INVALID_CREDENTIALS"})
 
         demanda = demanda_service.get_by_id(demanda_id)
         requerente = requerente_service.get_by_id(requerente_id)
