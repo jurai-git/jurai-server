@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
 
+from app.main.service import requerente_service
 from app.main.service.advogado_service import AdvogadoService
+from app.main.service.requerente_service import RequerenteService
 
 advogado_bp = Blueprint('advogado', __name__)
 CORS(advogado_bp)
@@ -122,7 +124,7 @@ def get_requerentes():
 @cross_origin()
 @advogado_bp.route("/demandas", methods=['POST'])
 def get_demandas_from_requerente():
-    data = request.json
+    data = request.get_json()
     advogado_token = data.get('access_token')
     requerente_id = data.get('requerente_id')
 
@@ -159,22 +161,25 @@ def get_demandas_from_requerente():
 def delete_advogado():
     data = request.get_json()
 
-    advogado_id = data.get('advogado_id')
+    access_token = data.get('access_token')
 
-    if not advogado_id:
+    if not access_token:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
 
     with current_app.app_context():
         advogado_service: AdvogadoService = current_app.extensions['advogado_service']
+        requerente_service: RequerenteService = current_app.extensions['requerente_service']
 
-        advogado = advogado_service.find_by_id(advogado_id)
+        advogado = advogado_service.find_by_token(access_token)
 
         if not advogado:
-            return jsonify({'message': 'ERROR_INVALID_ID'}), 404
+            return jsonify({'message': 'ERROR_INVALID_CREDENTIALS'}), 404
 
         try:
+            for requerente in advogado.requerentes:
+                requerente_service.delete_requerente(advogado, requerente)
+
             advogado_service.delete_advogado(advogado)
             return jsonify({'message': 'SUCCESS'}), 200
         except Exception as e:
-            print(f'Error deleting demanda: {e}')
-            return jsonify({'message': 'ERROR_DELETING_DEMANDA', 'error': str(e)}), 500
+            return jsonify({'message': 'ERROR_DELETING_ADVOGADO', 'error': str(e)}), 500
