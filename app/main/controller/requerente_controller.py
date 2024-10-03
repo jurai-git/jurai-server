@@ -140,7 +140,7 @@ def delete_requerente():
 @cross_origin()
 @requerente_bp.route("/demandas", methods=['POST'])
 def get_demandas():
-    data = request.json
+    data = request.get_json()
     advogado_token = data.get('access_token')
     id_requerente = data.get("id_requerente")
 
