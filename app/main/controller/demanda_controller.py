@@ -76,7 +76,7 @@ def create_demanda():
 @cross_origin
 @demanda_bp.route("/update", methods=['PUT'])
 def update_demanda():
-    data = request.json
+    data = request.get_json()
 
     id_demanda = data.get("id_demanda")
     id_requerente = data.get("id_requerente")
