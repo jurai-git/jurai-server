@@ -31,7 +31,7 @@ class Demanda(db.Model):
         assunto_principal, pedido_liminar, 
         segredo_justica, valor_acao,
         dispensa_legal, justica_gratuita,
-        guia_custas, resumo, id_requerente):
+        guia_custas, resumo, status, id_requerente):
 
         self.identificacao = identificacao
         self.foro = foro

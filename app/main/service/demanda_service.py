@@ -11,13 +11,13 @@ class DemandaService:
         assunto_principal, pedido_liminar, 
         segredo_justica, valor_acao,
         dispensa_legal, justica_gratuita,
-        guia_custas, resumo, id_requerente
+        guia_custas, resumo, status, id_requerente
         ):
         
         d = Demanda(
             identificacao, foro, competencia, classe, assunto_principal, pedido_liminar,
             segredo_justica, valor_acao, dispensa_legal, justica_gratuita,
-            guia_custas, resumo, id_requerente
+            guia_custas, resumo, status, id_requerente
         )
 
         try:
@@ -44,7 +44,7 @@ class DemandaService:
                 "justica_gratuita": d.justica_gratuita,
                 "guia_custas": d.guia_custas,
                 "resumo": d.resumo,
-                # "status": d.status
+                "status": d.status
             }
 
     def update_demanda(self, requerente, demanda, data):
