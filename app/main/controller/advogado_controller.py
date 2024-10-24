@@ -41,10 +41,14 @@ def create_advogado():
 @advogado_bp.route('/get', methods=['POST'])
 def get_advogado():
     data = request.get_json()
-    access_token = data.get('access_token')
+    headers = request.headers
+
+    bearer = headers.get('Authorization')
+    access_token = None
+    if bearer:
+        access_token = bearer.split()[1]
     password = data.get('password')
     username = data.get('username')
-    print(access_token)
     print(password)
     print(username)
     
@@ -100,8 +104,11 @@ def auth():
 @advogado_bp.route("/requerentes", methods=['POST'])
 def get_requerentes():
     # gather data
-    data = request.json
-    advogado_token = data.get('access_token')
+    headers = request.headers
+    bearer = headers.get('Authorization')
+    advogado_token = None
+    if bearer:
+        advogado_token = bearer.split()[1]
 
     # verifications
     if not advogado_token:
@@ -125,7 +132,11 @@ def get_requerentes():
 @advogado_bp.route("/demandas", methods=['POST'])
 def get_demandas_from_requerente():
     data = request.get_json()
-    advogado_token = data.get('access_token')
+    headers = request.headers
+    bearer = headers.get('Authorization')
+    advogado_token = None
+    if bearer:
+        advogado_token = bearer.split()[1]
     requerente_id = data.get('requerente_id')
 
     if not advogado_token or not requerente_id:
@@ -160,8 +171,11 @@ def get_demandas_from_requerente():
 @advogado_bp.route("/delete", methods=['DELETE'])
 def delete_advogado():
     data = request.get_json()
-
-    access_token = data.get('access_token')
+    headers = request.headers
+    bearer = headers.get('Authorization')
+    access_token = None
+    if bearer:
+        access_token = bearer.split()[1]
 
     if not access_token:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400

@@ -17,7 +17,12 @@ def create_demanda():
     print(request.get_json())
     data = request.get_json()
 
-    advogado_token = data.get("access_token")
+    headers = request.headers
+    bearer = headers.get('Authorization')
+    access_token = None
+    if bearer:
+        access_token = bearer.split()[1]
+
     id_requerente = data.get("id_requerente")
     identificacao = data.get("identificacao")
     foro = data.get("foro")
@@ -56,7 +61,7 @@ def create_demanda():
         requerente_service: RequerenteService = current_app.extensions['requerente_service']
         demanda_service: DemandaService = current_app.extensions['demanda_service']
         try:
-            advogado = advogado_service.find_by_token(advogado_token)
+            advogado = advogado_service.find_by_token(access_token)
             if advogado is None:
                 return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
 
@@ -81,7 +86,11 @@ def update_demanda():
 
     id_demanda = data.get("id_demanda")
     id_requerente = data.get("id_requerente")
-    access_token = data.get("access_token")
+    headers = request.headers
+    bearer = headers.get('Authorization')
+    access_token = None
+    if bearer:
+        access_token = bearer.split()[1]
 
     if not id_requerente or not id_demanda:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
@@ -126,7 +135,11 @@ def delete_demanda():
 
     demanda_id = data.get('demanda_id')
     requerente_id = data.get('requerente_id')
-    access_token = data.get('access_token')
+    headers = request.headers
+    bearer = headers.get('Authorization')
+    access_token = None
+    if bearer:
+        access_token = bearer.split()[1]
 
     if not demanda_id or not requerente_id or not access_token:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
@@ -143,7 +156,7 @@ def delete_demanda():
         demanda = demanda_service.get_by_id(demanda_id)
         requerente = requerente_service.get_by_id(requerente_id)
 
-        if not demanda:
+        if not demanda or not requerente:
             return jsonify({'message': 'ERROR_INVALID_ID'}), 404
 
         try:

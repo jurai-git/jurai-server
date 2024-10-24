@@ -10,7 +10,7 @@ class Demanda(db.Model):
     # Fields
     identificacao = db.Column(db.String(128), nullable=False)
     foro = db.Column(db.String(50), nullable = False)
-    status = db.Column(db.String(50), nullable = True)
+    status = db.Column(db.String(64), nullable = True)
     competencia = db.Column(db.String(50), nullable=False)
     classe = db.Column(db.String(50), nullable=False)
     assunto_principal = db.Column(db.String(512), nullable=False)
