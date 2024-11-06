@@ -18,7 +18,7 @@ ALLOWED_EXTENSIONS = ['pdf']
 
 prob_model = load_model('models/probability.keras')
 prob_tokenizer = build_tokenizer_from_csv(
-    'models/datasets/normalized_dataset__ementa_probability_ai.csv',
+    'models/datasets/dataset.csv',
     32_000,
     '<00V>'
 )
