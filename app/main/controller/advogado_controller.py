@@ -1,7 +1,9 @@
+from sqlite3 import IntegrityError
+
 from flask import Blueprint, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
 
-from app.main.service import requerente_service
+from app.main.controller import require_auth
 from app.main.service.advogado_service import AdvogadoService
 from app.main.service.requerente_service import RequerenteService
 
@@ -34,12 +36,13 @@ def create_advogado():
             user = advogado_service.create_advogado(username, password, oab, email)
             return jsonify({"message": "SUCCESS", "access_token": user.access_token}), 201
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 @cross_origin()
 @advogado_bp.route('/get', methods=['POST'])
 def get_advogado():
+
     data = request.get_json()
     headers = request.headers
 
@@ -49,8 +52,6 @@ def get_advogado():
         access_token = bearer.split()[1]
     password = data.get('password')
     username = data.get('username')
-    print(password)
-    print(username)
     
     with current_app.app_context():
         try:
@@ -60,8 +61,8 @@ def get_advogado():
                 if not password or not username:
                     return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
                 access_token = advogado_service.get_token(username, password)
-
             advogado = advogado_service.find_by_token(access_token)
+
             if advogado:
                 return jsonify({
                     "message": "SUCCESS",
@@ -75,7 +76,7 @@ def get_advogado():
                 }), 200
             return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 @cross_origin()
@@ -97,49 +98,35 @@ def auth():
             else:
                 return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 @cross_origin()
 @advogado_bp.route("/requerentes", methods=['POST'])
-def get_requerentes():
+@require_auth
+def get_requerentes(advogado):
     # gather data
-    headers = request.headers
-    bearer = headers.get('Authorization')
-    advogado_token = None
-    if bearer:
-        advogado_token = bearer.split()[1]
-
     # verifications
-    if not advogado_token:
-        return jsonify({"message": "ERROR_REQURED_FIELDS_EMPTY"}), 400
-    
+
     with current_app.app_context():
         try:
             advogado_service = current_app.extensions['advogado_service']
             requerente_service = current_app.extensions['requerente_service']
 
-            advogado = advogado_service.find_by_token(advogado_token)
-            if not advogado:
-                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
-
             return jsonify({"message": "SUCCESS", "requerentes_list": requerente_service.get_requerentes(advogado)}), 201
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
+
 
 @cross_origin()
 @advogado_bp.route("/demandas", methods=['POST'])
-def get_demandas_from_requerente():
-    data = request.get_json()
-    headers = request.headers
-    bearer = headers.get('Authorization')
-    advogado_token = None
-    if bearer:
-        advogado_token = bearer.split()[1]
+@require_auth
+def get_demandas_from_requerente(advogado):
+    data = request.json()
     requerente_id = data.get('requerente_id')
 
-    if not advogado_token or not requerente_id:
+    if not requerente_id:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
     
     with current_app.app_context():
@@ -147,11 +134,6 @@ def get_demandas_from_requerente():
             advogado_service = current_app.extensions['advogado_service']
             requerente_service = current_app.extensions['requerente_service']
             demanda_service = current_app.extensions['demanda_service']
-
-            # auth advogado
-            advogado = advogado_service.find_by_token(advogado_token)
-            if not advogado:
-                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
 
             # see if advogado has requerente
             requerente = requerente_service.get_by_id(requerente_id)
@@ -163,28 +145,18 @@ def get_demandas_from_requerente():
 
             return jsonify({"message": "SUCCESS", "demanda_list": demanda_service.get_demandas(requerente)})
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 
 @cross_origin()
 @advogado_bp.route("/delete", methods=['DELETE'])
-def delete_advogado():
-    data = request.get_json()
-    headers = request.headers
-    bearer = headers.get('Authorization')
-    access_token = None
-    if bearer:
-        access_token = bearer.split()[1]
-
-    if not access_token:
-        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
+@require_auth
+def delete_advogado(advogado):
 
     with current_app.app_context():
         advogado_service: AdvogadoService = current_app.extensions['advogado_service']
         requerente_service: RequerenteService = current_app.extensions['requerente_service']
-
-        advogado = advogado_service.find_by_token(access_token)
 
         if not advogado:
             return jsonify({'message': 'ERROR_INVALID_CREDENTIALS'}), 404
@@ -196,4 +168,38 @@ def delete_advogado():
             advogado_service.delete_advogado(advogado)
             return jsonify({'message': 'SUCCESS'}), 200
         except Exception as e:
-            return jsonify({'message': 'ERROR_DELETING_ADVOGADO', 'error': str(e)}), 500
+            current_app.logger.warning(f"Returning 500 due to {e}")
+            return jsonify({'message': 'INTERNAL_SERVER_ERROR'}), 500
+
+@cross_origin()
+@advogado_bp.route("/update", methods=['PUT'])
+@require_auth
+def update_advogado(advogado):
+    data = request.json()
+
+    with current_app.app_context():
+        advogado_service: AdvogadoService = current_app.extensions['advogado_service']
+
+        try:
+            result = advogado_service.update_advogado(advogado.access_token,
+                username = data.get("username"),
+                password = data.get("password"),
+                oab = data.get('oab'),
+                email = data.get('email'),
+            )
+        except IntegrityError:
+            return jsonify({
+                "message": "ERROR_CONFLICT"
+            }), 409
+        except Exception as e:
+            current_app.logger.warning(f"Returning 500 due to {e}")
+            return jsonify({
+                "message": "INTERNAL_SERVER_ERROR"
+            }), 500
+        if result is None:
+            return jsonify({
+                "message": "ERROR_INVALID_CREDENTIALS"
+            }), 401
+
+        return jsonify({"message": "success", "access_token": result.access_token}), 200
+

@@ -11,7 +11,7 @@ from app.main.service.demanda_service import DemandaService
 from app.main.extensions import db
 from app.main import get_ai_bp
 
-def create_app(use_ai=True, config_class=Config):
+def create_app(use_ai=True, config_class=Config, testing=False):
     # create the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
@@ -19,23 +19,27 @@ def create_app(use_ai=True, config_class=Config):
     load_dotenv()
 
     # db initialization
-    host = os.getenv("MYSQL_HOST")
-    user = os.getenv("MYSQL_USER")
-    password = os.getenv("MYSQL_PASSWORD")
-    db_name = os.getenv("MYSQL_DB")
-    app.config['SQLALCHEMY_DATABASE_URI'] = ("mysql+mysqlconnector://" + user + ":" + password + "@" + host + ":3306/" + db_name)
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_size': 10,
-        'max_overflow': 5,
-        'pool_timeout': 30,
-        'pool_recycle': 1800,
-        'echo': False,
-        'pool_pre_ping': True,
-        'connect_args': {
-            'connect_timeout': 5,
-        }
-    }
+    mysql_vars = ['MYSQL_HOST', 'MYSQL_USER', 'MYSQL_PASSWORD', 'MYSQL_DB']
+    if all(os.getenv(var) for var in mysql_vars) and not testing:
+        host = os.getenv("MYSQL_HOST")
+        user = os.getenv("MYSQL_USER")
+        password = os.getenv("MYSQL_PASSWORD")
+        db_name = os.getenv("MYSQL_DB")
+        app.config['SQLALCHEMY_DATABASE_URI'] = (
+            f"mysql+mysqlconnector://{user}:{password}@{host}:3306/{db_name}"
+        )
 
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+            'pool_size': 10,
+            'max_overflow': 5,
+            'pool_timeout': 30,
+            'pool_recycle': 1800,
+            'echo': False,
+            'pool_pre_ping': True,
+            'connect_args': {
+                'connect_timeout': 5,
+            }
+        }
 
     db.init_app(app)
     app.extensions['db'] = db
@@ -44,7 +48,6 @@ def create_app(use_ai=True, config_class=Config):
         from app.main.model.requerente import Requerente
         from app.main.model.demanda import Demanda
         from app.main.model.ai_data import AiData
-        from app.main.model.argumento import Argumento
         db.create_all()
 
     # service initialization
@@ -64,7 +67,7 @@ def create_app(use_ai=True, config_class=Config):
         return jsonify({"url_map": app.url_map.__str__()}), 200
 
 
-    @app.route("/teapot/")
+    @app.route("/teapot")
     def teapot():
         return jsonify({"message": "IM_A_TEAPOT"}), 418
 
