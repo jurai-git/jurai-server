@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
 
+from app.main.controller import require_auth
 from app.main.model.demanda import Demanda
 from app.main.service import requerente_service
 from app.main.service import advogado_service
@@ -13,15 +14,10 @@ CORS(demanda_bp)
 
 @cross_origin()
 @demanda_bp.route("/new", methods=['POST'])
-def create_demanda():
+@require_auth
+def create_demanda(advogado):
     print(request.get_json())
     data = request.get_json()
-
-    headers = request.headers
-    bearer = headers.get('Authorization')
-    access_token = None
-    if bearer:
-        access_token = bearer.split()[1]
 
     id_requerente = data.get("id_requerente")
     identificacao = data.get("identificacao")
@@ -57,14 +53,10 @@ def create_demanda():
         return jsonify({"message": "REQUIRED_FIELDS_LEFT_EMPTY"}), 400
 
     with current_app.app_context():
-        advogado_service: AdvogadoService = current_app.extensions['advogado_service']
         requerente_service: RequerenteService = current_app.extensions['requerente_service']
         demanda_service: DemandaService = current_app.extensions['demanda_service']
-        try:
-            advogado = advogado_service.find_by_token(access_token)
-            if advogado is None:
-                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
 
+        try:
             requerente = requerente_service.get_by_id(id_requerente)
             if requerente is None:
                 return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
@@ -81,29 +73,20 @@ def create_demanda():
 
 @cross_origin
 @demanda_bp.route("/update", methods=['PUT'])
-def update_demanda():
+@require_auth
+def update_demanda(advogado):
     data = request.get_json()
 
     id_demanda = data.get("id_demanda")
     id_requerente = data.get("id_requerente")
-    headers = request.headers
-    bearer = headers.get('Authorization')
-    access_token = None
-    if bearer:
-        access_token = bearer.split()[1]
 
     if not id_requerente or not id_demanda:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
 
     with current_app.app_context():
         try:
-            advogado_service = current_app.extensions['advogado_service']
             requerente_service = current_app.extensions['requerente_service']
             demanda_service = current_app.extensions['demanda_service']
-
-            advogado = advogado_service.find_by_token(access_token)
-            if advogado is None:
-                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
 
             requerente  = requerente_service.get_by_id(id_requerente)
             if requerente is None:
@@ -130,31 +113,24 @@ def update_demanda():
 
 @cross_origin()
 @demanda_bp.route("/delete", methods=['DELETE'])
-def delete_demanda():
+@require_auth
+def delete_demanda(advogado):
     data = request.get_json()
 
     demanda_id = data.get('demanda_id')
     requerente_id = data.get('requerente_id')
-    headers = request.headers
-    bearer = headers.get('Authorization')
-    access_token = None
-    if bearer:
-        access_token = bearer.split()[1]
 
-    if not demanda_id or not requerente_id or not access_token:
+    if not demanda_id or not requerente_id:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
 
     with current_app.app_context():
         demanda_service: DemandaService = current_app.extensions['demanda_service']
         requerente_service: RequerenteService = current_app.extensions['requerente_service']
-        advogado_service: AdvogadoService = current_app.extensions['advogado_service']
-
-        advogado = advogado_service.find_by_token(access_token)
-        if advogado is None:
-            return jsonify({"message": "ERROR_INVALID_CREDENTIALS"})
 
         demanda = demanda_service.get_by_id(demanda_id)
         requerente = requerente_service.get_by_id(requerente_id)
+        if requerente not in advogado.requerentes:
+            return jsonify({"message": "ERROR_INVALID_CREDENTIALS"})
 
         if not demanda or not requerente:
             return jsonify({'message': 'ERROR_INVALID_ID'}), 404

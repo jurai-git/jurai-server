@@ -2,6 +2,7 @@ from flask import Blueprint, json, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
 from sqlalchemy.exc import IntegrityError
 
+from app.main.controller import require_auth
 from app.main.service.advogado_service import AdvogadoService
 
 requerente_bp = Blueprint('requerente', __name__)
@@ -9,15 +10,10 @@ CORS(requerente_bp)
 
 @cross_origin
 @requerente_bp.route("/update", methods=['PUT'])
-def update_requerente():
+@require_auth
+def update_requerente(advogado):
     data = request.get_json()
-
     id_requerente = data.get("id_requerente")
-    headers = request.headers
-    bearer = headers.get('Authorization')
-    access_token = None
-    if bearer:
-        access_token = bearer.split()[1]
 
     # verifications
     if not id_requerente:
@@ -25,13 +21,7 @@ def update_requerente():
 
     with current_app.app_context():
         try:
-            advogado_service = current_app.extensions['advogado_service']
             requerente_service = current_app.extensions['requerente_service']
-
-            # get advogado
-            advogado = advogado_service.find_by_token(access_token)
-            if advogado is None:
-                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
 
             # get requerente
             requerente = requerente_service.get_by_id(id_requerente)
@@ -51,7 +41,8 @@ def update_requerente():
 
 @cross_origin()
 @requerente_bp.route("/new", methods=['POST'])
-def create_requerente():
+@require_auth
+def create_requerente(advogado):
     # gather data
     data = request.get_json()
 
@@ -74,12 +65,6 @@ def create_requerente():
     cidade = data.get("cidade")
     bairro = data.get("bairro")
 
-    headers = request.headers
-    bearer = headers.get('Authorization')
-    access_token = None
-    if bearer:
-        access_token = bearer.split()[1]
-
     # verifications
     if not cpf_cnpj or not nome or not genero or not rg or not orgao_emissor or not estado_civil or not nacionalidade or not profissao or not cep or not logradouro or not num_imovel or not email or not bairro or not estado or not cidade:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
@@ -89,12 +74,7 @@ def create_requerente():
     # store in db
     with current_app.app_context():
         try:
-            advogado_service = current_app.extensions['advogado_service']
             requerente_service = current_app.extensions['requerente_service']
-
-            advogado = advogado_service.find_by_token(access_token)
-            if advogado is None:
-                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
 
             id = advogado.id_advogado
             try:
@@ -115,33 +95,25 @@ def create_requerente():
 
 @cross_origin()
 @requerente_bp.route("/remove", methods=['DELETE'])
-def delete_requerente():
+@require_auth
+def delete_requerente(advogado):
     # gather data
     data = request.get_json()
-    headers = request.headers
-    bearer = headers.get('Authorization')
-    access_token = None
-    if bearer:
-        access_token = bearer.split()[1]
     requerente_id = data.get('requerente_id')
 
-    if not access_token or not requerente_id:
+    if not requerente_id:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
 
     with current_app.app_context():
         try:
-            advogado_service = current_app.extensions['advogado_service']
             requerente_service = current_app.extensions['requerente_service']
-            advogado = advogado_service.find_by_token(access_token)
-            if not advogado:
-                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
 
             requerente = requerente_service.get_by_id(requerente_id)
             try:
                 requerente_service.delete_requerente(advogado, requerente)
                 return jsonify({"message": "SUCCESS"}), 200
             except PermissionError:
-                return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
+                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
         except Exception as e:
             current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
@@ -149,13 +121,9 @@ def delete_requerente():
 
 @cross_origin()
 @requerente_bp.route("/demandas", methods=['POST'])
-def get_demandas():
+@require_auth
+def get_demandas(advogado):
     data = request.get_json()
-    headers = request.headers
-    bearer = headers.get('Authorization')
-    access_token = None
-    if bearer:
-        access_token = bearer.split()[1]
     id_requerente = data.get("id_requerente")
 
     if not id_requerente:
@@ -163,14 +131,8 @@ def get_demandas():
 
     with current_app.app_context():
         try:
-            advogado_service: AdvogadoService = current_app.extensions['advogado_service']
             requerente_service = current_app.extensions['requerente_service']
             demanda_service = current_app.extensions['demanda_service']
-
-            advogado = advogado_service.find_by_token(access_token)
-
-            if not advogado:
-                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
 
             requerente = requerente_service.get_by_id(id_requerente)
 
@@ -184,5 +146,3 @@ def get_demandas():
         except Exception as e:
             current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
-
-
