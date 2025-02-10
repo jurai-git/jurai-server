@@ -1,3 +1,5 @@
+from sqlite3 import IntegrityError
+
 from flask import Blueprint, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
 
@@ -170,7 +172,6 @@ def get_demandas_from_requerente():
 @cross_origin()
 @advogado_bp.route("/delete", methods=['DELETE'])
 def delete_advogado():
-    data = request.get_json()
     headers = request.headers
     bearer = headers.get('Authorization')
     access_token = None
@@ -196,4 +197,45 @@ def delete_advogado():
             advogado_service.delete_advogado(advogado)
             return jsonify({'message': 'SUCCESS'}), 200
         except Exception as e:
-            return jsonify({'message': 'ERROR_DELETING_ADVOGADO', 'error': str(e)}), 500
+            return jsonify({'message': 'INTERNAL_SERVER_ERROR'}), 500
+
+@cross_origin()
+@advogado_bp.route("/update", methods=['PUT'])
+def update_advogado():
+    # Get data
+    data = request.get_json()
+    headers = request.headers
+    bearer = headers.get('Authorization')
+    access_token = None
+    if bearer:
+        access_token = bearer.split()[1]
+    else:
+        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
+
+    with current_app.app_context():
+        advogado_service: AdvogadoService = current_app.extensions['advogado_service']
+
+        result = None
+        try:
+            result = advogado_service.update_advogado(access_token,
+                                                        username = data.get("username"),
+                                                        password = data.get("password"),
+                                                        oab = data.get('oab'),
+                                                        email = data.get('email'),
+                                                      )
+        except IntegrityError:
+            return jsonify({
+                "message": "ERROR_CONFLICT"
+            }), 409
+        except Exception as e:
+            print(e)
+            return jsonify({
+                "message": "INTERNAL_SERVER_ERROR"
+            }), 500
+        if result is None:
+            return jsonify({
+                "message": "ERROR_INVALID_CREDENTIALS"
+            }), 401
+
+        return jsonify({"message": "success", "access_token": result.access_token}), 200
+
