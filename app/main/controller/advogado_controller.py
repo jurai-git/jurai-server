@@ -42,6 +42,7 @@ def create_advogado():
 @cross_origin()
 @advogado_bp.route('/get', methods=['POST'])
 def get_advogado():
+
     data = request.get_json()
     headers = request.headers
 

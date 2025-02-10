@@ -1,3 +1,14 @@
+import os
+
+from flask import Config
+
+class TestConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    WTF_CSRF_ENABLED = False
+    VAR_FOLDER = os.path.join(os.getcwd(), 'var/')
+
 import pytest
 
 from app import create_app, db
