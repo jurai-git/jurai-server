@@ -18,7 +18,7 @@ ALLOWED_EXTENSIONS = ['pdf']
 
 prob_model = load_model('models/probability.keras')
 prob_tokenizer = build_tokenizer_from_csv(
-    'models/datasets/normalized_dataset__ementa_probability_ai.csv',
+    'models/datasets/dataset.csv',
     32_000,
     '<00V>'
 )
@@ -39,5 +39,5 @@ def probability_model():
 
         return prob_inference(prob_model, prob_tokenizer, text)
     except Exception as e:
-        print(traceback.format_exc(e))
+        current_app.logger.warning(f"Returning 500 due to {e}")
         return jsonify({'message': "INTERNAL_SERVER_ERROR", "error": str(e)}), 500

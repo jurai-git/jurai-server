@@ -11,7 +11,6 @@ class AiData(db.Model):
     # FKs
     id_demanda = db.Column(db.Integer, db.ForeignKey('demanda.id_demanda'))
     demanda = db.relationship('Demanda', back_populates='ai_data')
-    argumentos = db.relationship('Argumento', backref='ai_data' ,lazy=True)
 
     def __init__(self, positive_odd=0, partial_odd=0, negative_odd=0):
         self.positive_odd = positive_odd

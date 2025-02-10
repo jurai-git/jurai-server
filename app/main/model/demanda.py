@@ -47,3 +47,13 @@ class Demanda(db.Model):
         self.resumo = resumo
         self.status = status
         self.id_requerente = id_requerente
+
+
+    def __eq__(self, other):
+        if isinstance(other, Demanda):
+            return self.id_demanda == other.id_demanda
+        return False
+
+    def __hash__(self):
+        return hash(self.id_demanda)
+

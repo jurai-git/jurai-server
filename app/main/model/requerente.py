@@ -102,3 +102,12 @@ class Requerente(db.Model):
     @property
     def access_token(self):
         return self._access_token
+
+    def __eq__(self, other):
+        if isinstance(other, Requerente):
+            return self.id_requerente == other.id_requerente
+        return False
+
+    def __hash__(self):
+        return hash(self.id_requerente)
+

@@ -38,19 +38,19 @@ class AdvogadoService:
             print("NoResultFound")
             return None
 
-    def update_advogado(self, advogado_id, **kwargs):
-        advogado = self.find_by_id(advogado_id)
+    def update_advogado(self, advogado_token, username=None, email=None, oab=None, password=None):
+        advogado = self.find_by_token(advogado_token)
         if not advogado:
             return None
 
-        if 'username' in kwargs:
-            advogado.username = kwargs['username']
-        if 'email' in kwargs:
-            advogado.email = kwargs['email']
-        if 'oab' in kwargs:
-            advogado.oab = kwargs['oab']
-        if 'password' in kwargs:
-            advogado.update_password(kwargs['password'])
+        if username is not None:
+            advogado.username = username
+        if email is not None:
+            advogado.email = email
+        if oab is not None:
+            advogado.oab = oab
+        if password is not None:
+            advogado.update_password(password)
 
         try:
             self.db.session.commit()
