@@ -36,7 +36,7 @@ def create_advogado():
             user = advogado_service.create_advogado(username, password, oab, email)
             return jsonify({"message": "SUCCESS", "access_token": user.access_token}), 201
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 @cross_origin()
@@ -77,7 +77,7 @@ def get_advogado():
                 }), 200
             return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 @cross_origin()
@@ -99,7 +99,7 @@ def auth():
             else:
                 return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 @cross_origin()
@@ -127,7 +127,7 @@ def get_requerentes():
 
             return jsonify({"message": "SUCCESS", "requerentes_list": requerente_service.get_requerentes(advogado)}), 201
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 @cross_origin()
@@ -136,9 +136,11 @@ def get_demandas_from_requerente():
     data = request.get_json()
     headers = request.headers
     bearer = headers.get('Authorization')
-    advogado_token = None
     if bearer:
         advogado_token = bearer.split()[1]
+    else:
+        return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
+
     requerente_id = data.get('requerente_id')
 
     if not advogado_token or not requerente_id:
@@ -210,7 +212,7 @@ def update_advogado():
     if bearer:
         access_token = bearer.split()[1]
     else:
-        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
+        return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
 
     with current_app.app_context():
         advogado_service: AdvogadoService = current_app.extensions['advogado_service']

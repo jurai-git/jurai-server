@@ -65,7 +65,6 @@ def create_demanda():
             if advogado is None:
                 return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
 
-            print(id_requerente)
             requerente = requerente_service.get_by_id(id_requerente)
             if requerente is None:
                 return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
@@ -77,8 +76,9 @@ def create_demanda():
 
             return jsonify({"message": "SUCCESS", "demanda": demanda_service.serialize(d)})
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
+
 @cross_origin
 @demanda_bp.route("/update", methods=['PUT'])
 def update_demanda():
@@ -122,7 +122,7 @@ def update_demanda():
             except PermissionError as e:
                 return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
         return jsonify({"message": "SUCCESS"}), 200
@@ -163,5 +163,5 @@ def delete_demanda():
             demanda_service.delete_demanda(demanda, requerente)
             return jsonify({'message': 'SUCCESS'}), 200
         except Exception as e:
-            print(f'Error deleting demanda: {e}')
-            return jsonify({'message': 'ERROR_DELETING_DEMANDA', 'error': str(e)}), 500
+            current_app.logger.warning(f"Returning 500 due to {e}")
+            return jsonify({'message': 'INTERNAL_SERVER_ERROR', 'error': str(e)}), 500

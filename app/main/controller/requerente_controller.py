@@ -44,7 +44,7 @@ def update_requerente():
                 return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
             return jsonify({"message": "SUCCESS", "requerente": requerente_service.serialize(requerente)}), 200
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 
@@ -106,11 +106,10 @@ def create_requerente():
                     estado=estado, cidade=cidade, advogado_id=id
                 )
             except IntegrityError as e:
-                print(e._message)
-                return jsonify({"message": "REQUERENTE_ALREADY_EXISTS"}), 409 # teremos que mudar a PK no futuro
+                return jsonify({"message": "ERROR_CONFLICT"}), 409 # teremos que mudar a PK no futuro
             return jsonify({"message": "SUCCESS"}), 201
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 
@@ -144,7 +143,7 @@ def delete_requerente():
             except PermissionError:
                 return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 
@@ -176,14 +175,14 @@ def get_demandas():
             requerente = requerente_service.get_by_id(id_requerente)
 
             if not requerente:
-                return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
+                return jsonify({"message": "ERROR_INVALID_ID"}), 404
 
             if not requerente.advogado_id == advogado.id_advogado:
                 return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
 
             return jsonify({"message": "SUCCESS", "demanda_list": demanda_service.get_demandas(requerente)}), 200
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 

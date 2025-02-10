@@ -39,5 +39,5 @@ def probability_model():
 
         return prob_inference(prob_model, prob_tokenizer, text)
     except Exception as e:
-        print(traceback.format_exc(e))
+        current_app.logger.warning(f"Returning 500 due to {e}")
         return jsonify({'message': "INTERNAL_SERVER_ERROR", "error": str(e)}), 500
