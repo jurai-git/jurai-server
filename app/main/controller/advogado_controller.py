@@ -165,7 +165,7 @@ def get_demandas_from_requerente():
 
             return jsonify({"message": "SUCCESS", "demanda_list": demanda_service.get_demandas(requerente)})
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
 
@@ -197,6 +197,7 @@ def delete_advogado():
             advogado_service.delete_advogado(advogado)
             return jsonify({'message': 'SUCCESS'}), 200
         except Exception as e:
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({'message': 'INTERNAL_SERVER_ERROR'}), 500
 
 @cross_origin()
@@ -206,7 +207,6 @@ def update_advogado():
     data = request.get_json()
     headers = request.headers
     bearer = headers.get('Authorization')
-    access_token = None
     if bearer:
         access_token = bearer.split()[1]
     else:
@@ -215,7 +215,6 @@ def update_advogado():
     with current_app.app_context():
         advogado_service: AdvogadoService = current_app.extensions['advogado_service']
 
-        result = None
         try:
             result = advogado_service.update_advogado(access_token,
                                                         username = data.get("username"),
@@ -228,7 +227,7 @@ def update_advogado():
                 "message": "ERROR_CONFLICT"
             }), 409
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({
                 "message": "INTERNAL_SERVER_ERROR"
             }), 500
