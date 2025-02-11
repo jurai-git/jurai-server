@@ -1,4 +1,4 @@
-from sqlite3 import IntegrityError
+from sqlalchemy.exc import IntegrityError
 
 from flask import Blueprint, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
@@ -30,11 +30,13 @@ def create_advogado():
     with current_app.app_context():
         try:
             advogado_service = current_app.extensions['advogado_service']
-            if advogado_service.find_by_uname(username) or advogado_service.find_by_email(email):
-                return jsonify({"message": "ERROR_CONFLICT"}), 409
 
             user = advogado_service.create_advogado(username, password, oab, email)
             return jsonify({"message": "SUCCESS", "access_token": user.access_token}), 201
+        except IntegrityError as e:
+            return jsonify({
+                "message": "ERROR_CONFLICT"
+            }), 409
         except Exception as e:
             current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
@@ -175,7 +177,7 @@ def delete_advogado(advogado):
 @advogado_bp.route("/update", methods=['PUT'])
 @require_auth
 def update_advogado(advogado):
-    data = request.json()
+    data = request.get_json()
 
     with current_app.app_context():
         advogado_service: AdvogadoService = current_app.extensions['advogado_service']
@@ -201,5 +203,5 @@ def update_advogado(advogado):
                 "message": "ERROR_INVALID_CREDENTIALS"
             }), 401
 
-        return jsonify({"message": "success", "access_token": result.access_token}), 200
+        return jsonify({"message": "SUCCESS", "access_token": result.access_token}), 200
 

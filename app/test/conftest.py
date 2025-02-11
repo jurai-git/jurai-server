@@ -15,7 +15,7 @@ from app import create_app, db
 from app.test.conftest import TestConfig
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def app():
     """Create and configure a new app instance for each test module."""
     app = create_app(config_class=TestConfig, use_ai=False, testing=True)
@@ -26,7 +26,7 @@ def app():
         db.drop_all()
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def client(app):
     """Create a test client for the app."""
     return app.test_client()
@@ -41,6 +41,7 @@ def session(app):
         options = dict(bind=connection)
         db.session = db.create_scoped_session(options=options)
         yield db.session
+        db.session.expire_all()
         transaction.rollback()
         connection.close()
         db.session.remove()

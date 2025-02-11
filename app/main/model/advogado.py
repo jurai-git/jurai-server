@@ -17,9 +17,9 @@ class Advogado(db.Model):
 
     def __init__(self, username, email, oab, pwd, **kw: Any):
         super().__init__(**kw)
-        self.username = username
-        self.email = email
-        self.oab = oab
+        self.username = username.lower()
+        self.email = email.lower()
+        self.oab = oab.lower()
 
         self._salt = crypt_utils.gensalt()
         self._password_hash = crypt_utils.hash_password(pwd, self._salt).decode('utf-8')
