@@ -1,7 +1,8 @@
-from flask import Blueprint, json, request, jsonify, current_app
+from flask import Blueprint, json, request, jsonify, current_app, logging
 from flask_cors import CORS, cross_origin
 from sqlalchemy.exc import IntegrityError
 
+from app.main.service.requerente_service import RequerenteService
 from app.main.controller import require_auth
 from app.main.service.advogado_service import AdvogadoService
 
@@ -67,6 +68,8 @@ def create_requerente(advogado):
 
     # verifications
     if not cpf_cnpj or not nome or not genero or not rg or not orgao_emissor or not estado_civil or not nacionalidade or not profissao or not cep or not logradouro or not num_imovel or not email or not bairro or not estado or not cidade:
+        print("empty fields")
+
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
     if not idoso:
         idoso = False
@@ -86,7 +89,7 @@ def create_requerente(advogado):
                     estado=estado, cidade=cidade, advogado_id=id
                 )
             except IntegrityError as e:
-                return jsonify({"message": "ERROR_CONFLICT"}), 409 # teremos que mudar a PK no futuro
+                return jsonify({"message": "ERROR_CONFLICT"}), 409
             return jsonify({"message": "SUCCESS"}), 201
         except Exception as e:
             current_app.logger.warning(f"Returning 500 due to {e}")
@@ -106,7 +109,7 @@ def delete_requerente(advogado):
 
     with current_app.app_context():
         try:
-            requerente_service = current_app.extensions['requerente_service']
+            requerente_service: RequerenteService = current_app.extensions['requerente_service']
 
             requerente = requerente_service.get_by_id(requerente_id)
             try:
@@ -114,6 +117,9 @@ def delete_requerente(advogado):
                 return jsonify({"message": "SUCCESS"}), 200
             except PermissionError:
                 return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
+            except Exception as e:
+                current_app.logger.warning(f"Returning 500 due to {e}")
+                return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
         except Exception as e:
             current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500

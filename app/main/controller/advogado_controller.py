@@ -107,12 +107,8 @@ def auth():
 @advogado_bp.route("/requerentes", methods=['POST'])
 @require_auth
 def get_requerentes(advogado):
-    # gather data
-    # verifications
-
     with current_app.app_context():
         try:
-            advogado_service = current_app.extensions['advogado_service']
             requerente_service = current_app.extensions['requerente_service']
 
             return jsonify({"message": "SUCCESS", "requerentes_list": requerente_service.get_requerentes(advogado)}), 201
@@ -133,7 +129,6 @@ def get_demandas_from_requerente(advogado):
     
     with current_app.app_context():
         try:
-            advogado_service = current_app.extensions['advogado_service']
             requerente_service = current_app.extensions['requerente_service']
             demanda_service = current_app.extensions['demanda_service']
 

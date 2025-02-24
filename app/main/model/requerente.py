@@ -1,3 +1,5 @@
+from sqlalchemy import UniqueConstraint
+
 from app.main.extensions import db
 from app.main.model import crypt_utils
 
@@ -39,6 +41,11 @@ class Requerente(db.Model):
     advogado_id = db.Column(db.Integer, db.ForeignKey('advogado.id_advogado'), nullable=False)
     demandas = db.relationship('Demanda', backref='requerente', lazy=True)
 
+    # Make cpf_cnpj and rg unique to the advogado's fk
+    __table_args__ = (
+        UniqueConstraint('cpf_cnpj', 'advogado_id', name='uq_cpf_cnpj_advogado'),
+        UniqueConstraint('rg', 'advogado_id', name='uq_rg_advogado'),
+    )
 
     def __init__(self,
         cpf_cnpj, nome,

@@ -5,6 +5,12 @@ advogado_create_data = {
     'oab': 'test_advogado',
     'password': 'test_advogado'
 }
+alt_advogado_data = {
+    'username': 'alt_advogado',
+    'email': 'alt_advogado@test.com',
+    'oab': 'alt_advogado',
+    'password': 'alt_advogado'
+}
 
 def test_create_advogado(client, app):
     response = client.post('/advogado/new', json=advogado_create_data)
@@ -14,6 +20,7 @@ def test_create_advogado(client, app):
     advogados = service.get_all()
     assert len(advogados) == 1
     assert advogados[0].username == advogado_create_data['username']
+
 
 def test_create_advogado_with_conflicting_username(client, app):
     response = client.post('/advogado/new', json=advogado_create_data)

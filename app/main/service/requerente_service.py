@@ -59,6 +59,10 @@ class RequerenteService:
     def get_requerentes(self, advogado):
         return [ self.serialize(r) for r in advogado.requerentes ]
 
+    def get_requerentes_unserialized(self, advogado):
+        self.db.session.refresh(advogado)
+        return advogado.requerentes
+
     def update_requerente(self, advogado, requerente, data):
         if requerente.advogado_id != advogado.id_advogado:
             print("permission error")
@@ -117,7 +121,9 @@ class RequerenteService:
                 self.db.session.delete(demanda)
             self.db.session.delete(requerente)
             self.db.session.commit()
+            print("deleted")
         except Exception as e:
+            print("exception")
             self.db.session.rollback()
             raise e
 
