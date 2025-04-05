@@ -11,6 +11,8 @@ from app.main.service.demanda_service import DemandaService
 from app.main.extensions import db
 from app.main import get_ai_bp
 
+from flask_cors import CORS
+
 def create_app(use_ai=True, config_class=Config):
     # create the app
     app = Flask(__name__, instance_relative_config=True)
@@ -58,6 +60,18 @@ def create_app(use_ai=True, config_class=Config):
     @app.before_request
     def before_request():
         request.charset = 'utf-8'
+
+    @app.after_request
+    def cors_postprocess(response):
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+            return response
+
+    @app.before_request
+    def handle_options():
+        if request.method == 'OPTIONS':
+            return '', 204
 
     @app.route("/", methods=['GET'])
     def index():
