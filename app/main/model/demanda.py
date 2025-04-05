@@ -10,7 +10,7 @@ class Demanda(db.Model):
     # Fields
     identificacao = db.Column(db.String(128), nullable=False)
     foro = db.Column(db.String(50), nullable = False)
-    status = db.Column(db.String(50), nullable = True)
+    status = db.Column(db.String(64), nullable = True)
     competencia = db.Column(db.String(50), nullable=False)
     classe = db.Column(db.String(50), nullable=False)
     assunto_principal = db.Column(db.String(512), nullable=False)
@@ -47,3 +47,13 @@ class Demanda(db.Model):
         self.resumo = resumo
         self.status = status
         self.id_requerente = id_requerente
+
+
+    def __eq__(self, other):
+        if isinstance(other, Demanda):
+            return self.id_demanda == other.id_demanda
+        return False
+
+    def __hash__(self):
+        return hash(self.id_demanda)
+

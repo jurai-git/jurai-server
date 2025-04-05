@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
 
+from app.main.controller import require_auth
 from app.main.model.demanda import Demanda
 from app.main.service import requerente_service
 from app.main.service import advogado_service
@@ -13,11 +14,10 @@ CORS(demanda_bp)
 
 @cross_origin()
 @demanda_bp.route("/new", methods=['POST'])
-def create_demanda():
-    print(request.get_json())
+@require_auth
+def create_demanda(advogado):
     data = request.get_json()
 
-    advogado_token = data.get("access_token")
     id_requerente = data.get("id_requerente")
     identificacao = data.get("identificacao")
     foro = data.get("foro")
@@ -33,34 +33,14 @@ def create_demanda():
     guia_custas = data.get("guia_custas")
     resumo = data.get("resumo")
 
-    print(f"foro: {foro}")
-    print(f"status: {status}")
-    print(f"id_requerente: {id_requerente}")
-    print(f"identificacao: {identificacao}")
-    print(f"competencia: {competencia}")
-    print(f"classe: {classe}")
-    print(f"assunto_principal: {assunto_principal}")
-    print(f"pedido_liminar: {pedido_liminar}")
-    print(f"segredo_justica: {segredo_justica}")
-    print(f"valor_acao: {valor_acao}")
-    print(f"dispensa_legal: {dispensa_legal}")
-    print(f"justica_gratuita: {justica_gratuita}")
-    print(f"guia_custas: {guia_custas}")
-    print(f"resumo: {resumo}")
-
     if foro is None or status is None or competencia is None or assunto_principal is None or pedido_liminar is None or segredo_justica is None or valor_acao is None or dispensa_legal is None or justica_gratuita is None or guia_custas is None or resumo is None or status is None:
         return jsonify({"message": "REQUIRED_FIELDS_LEFT_EMPTY"}), 400
 
     with current_app.app_context():
-        advogado_service: AdvogadoService = current_app.extensions['advogado_service']
         requerente_service: RequerenteService = current_app.extensions['requerente_service']
         demanda_service: DemandaService = current_app.extensions['demanda_service']
-        try:
-            advogado = advogado_service.find_by_token(advogado_token)
-            if advogado is None:
-                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
 
-            print(id_requerente)
+        try:
             requerente = requerente_service.get_by_id(id_requerente)
             if requerente is None:
                 return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
@@ -72,83 +52,86 @@ def create_demanda():
 
             return jsonify({"message": "SUCCESS", "demanda": demanda_service.serialize(d)})
         except Exception as e:
-            print(e)
+            current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
-@cross_origin
+
+
+@cross_origin()
 @demanda_bp.route("/update", methods=['PUT'])
-def update_demanda():
+@require_auth
+def update_demanda(advogado):
     data = request.get_json()
 
+    # Validate required IDs
     id_demanda = data.get("id_demanda")
     id_requerente = data.get("id_requerente")
-    access_token = data.get("access_token")
-
     if not id_requerente or not id_demanda:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
 
     with current_app.app_context():
         try:
-            advogado_service = current_app.extensions['advogado_service']
             requerente_service = current_app.extensions['requerente_service']
             demanda_service = current_app.extensions['demanda_service']
 
-            advogado = advogado_service.find_by_token(access_token)
-            if advogado is None:
-                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
-
-            requerente  = requerente_service.get_by_id(id_requerente)
-            if requerente is None:
+            requerente = requerente_service.get_by_id(id_requerente)
+            if not requerente:
                 return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
 
-            if not requerente.advogado_id == advogado.id_advogado:
-                print("advogado doesnt own requerente")
+            if requerente.advogado_id != advogado.id_advogado:
                 return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
 
             demanda = demanda_service.get_by_id(id_demanda)
-            if demanda is None:
+            if not demanda:
                 return jsonify({"message": "ERROR_DEMANDA_DOESNT_EXIST"}), 404
 
             try:
                 demanda_service.update_demanda(requerente, demanda, data)
-            except PermissionError as e:
+                return jsonify({"message": "SUCCESS"}), 200
+            except PermissionError:
                 return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
-        except Exception as e:
-            print(e)
-            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
 
-        return jsonify({"message": "SUCCESS"}), 200
+        except Exception as e:
+            current_app.logger.error(f"Error updating demanda: {str(e)}", exc_info=True)
+            return jsonify({
+                "message": "INTERNAL_SERVER_ERROR",
+                "error": str(e)
+            }), 500
 
 
 @cross_origin()
 @demanda_bp.route("/delete", methods=['DELETE'])
-def delete_demanda():
+@require_auth
+def delete_demanda(advogado):
     data = request.get_json()
 
     demanda_id = data.get('demanda_id')
     requerente_id = data.get('requerente_id')
-    access_token = data.get('access_token')
-
-    if not demanda_id or not requerente_id or not access_token:
+    if not demanda_id or not requerente_id:
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
 
     with current_app.app_context():
         demanda_service: DemandaService = current_app.extensions['demanda_service']
         requerente_service: RequerenteService = current_app.extensions['requerente_service']
-        advogado_service: AdvogadoService = current_app.extensions['advogado_service']
-
-        advogado = advogado_service.find_by_token(access_token)
-        if advogado is None:
-            return jsonify({"message": "ERROR_INVALID_CREDENTIALS"})
-
-        demanda = demanda_service.get_by_id(demanda_id)
-        requerente = requerente_service.get_by_id(requerente_id)
-
-        if not demanda:
-            return jsonify({'message': 'ERROR_INVALID_ID'}), 404
 
         try:
+            demanda = demanda_service.get_by_id(demanda_id)
+            requerente = requerente_service.get_by_id(requerente_id)
+
+            if not demanda or not requerente:
+                return jsonify({'message': 'ERROR_INVALID_ID'}), 404
+
+            print(advogado.requerentes)
+            print(requerente)
+            print(requerente in advogado.requerentes)
+            if requerente not in advogado.requerentes:
+                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
+
             demanda_service.delete_demanda(demanda, requerente)
             return jsonify({'message': 'SUCCESS'}), 200
+
         except Exception as e:
-            print(f'Error deleting demanda: {e}')
-            return jsonify({'message': 'ERROR_DELETING_DEMANDA', 'error': str(e)}), 500
+            current_app.logger.error(f"Error deleting demanda: {str(e)}", exc_info=True)
+            return jsonify({
+                'message': 'INTERNAL_SERVER_ERROR',
+                'error': str(e)
+            }), 500

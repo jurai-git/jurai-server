@@ -46,7 +46,6 @@ def create_app(use_ai=True, config_class=Config):
         from app.main.model.requerente import Requerente
         from app.main.model.demanda import Demanda
         from app.main.model.ai_data import AiData
-        from app.main.model.argumento import Argumento
         db.create_all()
 
     # service initialization

@@ -15,4 +15,4 @@ COPY . /app
 
 EXPOSE 8080
 
-CMD ["uwsgi", "--http", ":8000", "--module", "wsgi:app", "--callable", "app", "--master", "--processes", "4", "--threads", "2"]
+CMD ["uwsgi", "--http", ":8000", "--module", "wsgi:app", "--callable", "app", "--master", "--processes", "1", "--threads", "1"]
