@@ -19,3 +19,6 @@ def require_auth(f):
             return f(advogado, *args, **kwargs)
 
     return decorated
+
+def check_required_fields(data, fields):
+    return all(data.get(f) is not None for f in fields)

@@ -11,7 +11,7 @@ from app.main.controller.requerente_controller import requerente_bp
 main_bp.register_blueprint(requerente_bp, url_prefix='/requerente')
 
 from app.main.controller.demanda_controller import demanda_bp
-main_bp.register_blueprint(demanda_bp, url_prefix="/demanda")
+main_bp.register_blueprint(demanda_bp)
 
 def get_ai_bp() -> Blueprint:
     main_ai_bp = Blueprint('ai', __name__)

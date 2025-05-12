@@ -13,12 +13,11 @@ demanda_bp = Blueprint('demanda', __name__)
 CORS(demanda_bp)
 
 @cross_origin()
-@demanda_bp.route("/new", methods=['POST'])
+@demanda_bp.route("/requerente/<int:id_requerente>/demanda", methods=['POST'])
 @require_auth
-def create_demanda(advogado):
+def create_demanda(advogado, id_requerente):
     data = request.get_json()
 
-    id_requerente = data.get("id_requerente")
     identificacao = data.get("identificacao")
     foro = data.get("foro")
     status = data.get("status")
@@ -33,7 +32,7 @@ def create_demanda(advogado):
     guia_custas = data.get("guia_custas")
     resumo = data.get("resumo")
 
-    if foro is None or status is None or competencia is None or assunto_principal is None or pedido_liminar is None or segredo_justica is None or valor_acao is None or dispensa_legal is None or justica_gratuita is None or guia_custas is None or resumo is None or status is None:
+    if foro is None or status is None or competencia is None or assunto_principal is None or pedido_liminar is None or segredo_justica is None or valor_acao is None or dispensa_legal is None or justica_gratuita is None or guia_custas is None or resumo is None:
         return jsonify({"message": "REQUIRED_FIELDS_LEFT_EMPTY"}), 400
 
     with current_app.app_context():
@@ -53,39 +52,52 @@ def create_demanda(advogado):
             return jsonify({"message": "SUCCESS", "demanda": demanda_service.serialize(d)})
         except Exception as e:
             current_app.logger.warning(f"Returning 500 due to {e}")
-            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
+            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": str(e)}), 500
+
+@cross_origin()
+@demanda_bp.route("/demanda/<int:demanda_id>", methods=['DELETE'])
+@require_auth
+def delete_demanda(advogado, demanda_id):
+
+    with current_app.app_context():
+        demanda_service: DemandaService = current_app.extensions['demanda_service']
+
+        try:
+            demanda = demanda_service.get_by_id(demanda_id)
+
+            if not demanda:
+                return jsonify({'message': 'ERROR_INVALID_ID'}), 404
+
+            demanda_service.delete_demanda(demanda, advogado.id_advogado)
+            return jsonify({'message': 'SUCCESS'}), 200
+
+        except Exception as e:
+            current_app.logger.error(f"Error deleting demanda: {str(e)}", exc_info=True)
+            return jsonify({
+                'message': 'INTERNAL_SERVER_ERROR',
+                'error': str(e)
+            }), 500
 
 
 @cross_origin()
-@demanda_bp.route("/update", methods=['PUT'])
+@demanda_bp.route("/demanda/<int:id_demanda>", methods=['PATCH'])
 @require_auth
-def update_demanda(advogado):
+def update_demanda(advogado, id_demanda):
     data = request.get_json()
-
-    # Validate required IDs
-    id_demanda = data.get("id_demanda")
-    id_requerente = data.get("id_requerente")
-    if not id_requerente or not id_demanda:
-        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
 
     with current_app.app_context():
         try:
-            requerente_service = current_app.extensions['requerente_service']
             demanda_service = current_app.extensions['demanda_service']
-
-            requerente = requerente_service.get_by_id(id_requerente)
-            if not requerente:
-                return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
-
-            if requerente.advogado_id != advogado.id_advogado:
-                return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
 
             demanda = demanda_service.get_by_id(id_demanda)
             if not demanda:
                 return jsonify({"message": "ERROR_DEMANDA_DOESNT_EXIST"}), 404
 
+            if demanda.requerente.advogado_id != advogado.id_advogado:
+                return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
+
             try:
-                demanda_service.update_demanda(requerente, demanda, data)
+                demanda_service.update_demanda(demanda, data)
                 return jsonify({"message": "SUCCESS"}), 200
             except PermissionError:
                 return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
@@ -99,39 +111,29 @@ def update_demanda(advogado):
 
 
 @cross_origin()
-@demanda_bp.route("/delete", methods=['DELETE'])
+@demanda_bp.route("/demanda/<int:id_demanda>", methods=['GET'])
 @require_auth
-def delete_demanda(advogado):
-    data = request.get_json()
-
-    demanda_id = data.get('demanda_id')
-    requerente_id = data.get('requerente_id')
-    if not demanda_id or not requerente_id:
-        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
+def get_demanda(advogado, id_demanda):
 
     with current_app.app_context():
-        demanda_service: DemandaService = current_app.extensions['demanda_service']
-        requerente_service: RequerenteService = current_app.extensions['requerente_service']
-
         try:
-            demanda = demanda_service.get_by_id(demanda_id)
-            requerente = requerente_service.get_by_id(requerente_id)
+            demanda_service = current_app.extensions['demanda_service']
+            demanda = demanda_service.get_by_id(id_demanda)
 
-            if not demanda or not requerente:
-                return jsonify({'message': 'ERROR_INVALID_ID'}), 404
+            if not demanda:
+                return jsonify({"message": "ERROR_DEMANDA_DOESNT_EXIST"}), 404
 
-            print(advogado.requerentes)
-            print(requerente)
-            print(requerente in advogado.requerentes)
-            if requerente not in advogado.requerentes:
-                return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
+            if not demanda or demanda.requerente.advogado_id != advogado.id_advogado:
+                return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
 
-            demanda_service.delete_demanda(demanda, requerente)
-            return jsonify({'message': 'SUCCESS'}), 200
+            return jsonify({
+                "message": "SUCCESS",
+                "demanda": demanda.serialize()
+            }), 200
 
         except Exception as e:
-            current_app.logger.error(f"Error deleting demanda: {str(e)}", exc_info=True)
+            current_app.logger.error(f"Error getting demanda: {str(e)}", exc_info=True)
             return jsonify({
-                'message': 'INTERNAL_SERVER_ERROR',
-                'error': str(e)
+                "message": "INTERNAL_SERVER_ERROR",
+                "error": str(e)
             }), 500

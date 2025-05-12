@@ -5,15 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b3784e8e-fc39-4d71-b51d-34bf7e82f38f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/test/conftest.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/test/controller/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/test/controller/test_advogado_controller.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/test/test_server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/main/controller/advogado_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main/controller/advogado_controller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/test/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/test/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,6 +46,8 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Python tests.Python tests in test_advogado_controller.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python.advogado_service.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
@@ -93,11 +87,18 @@
       <workItem from="1725832064194" duration="106000" />
       <workItem from="1739185359392" duration="47000" />
       <workItem from="1739185428434" duration="5353000" />
-      <workItem from="1739204362786" duration="744000" />
+      <workItem from="1739204362786" duration="9186000" />
+      <workItem from="1739234788934" duration="13288000" />
+      <workItem from="1739789870076" duration="13819000" />
+      <workItem from="1740394969669" duration="5552000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/jurai_server$advogado_service.coverage" NAME="advogado_service Coverage Results" MODIFIED="1739235757991" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/app/main/service" />
+    <SUITE FILE_PATH="coverage/jurai_server$.coverage" NAME=" Coverage Results" MODIFIED="1739236461397" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/app/test/controller" />
   </component>
 </project>
