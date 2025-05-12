@@ -29,7 +29,7 @@ class DemandaService:
 
         return d
 
-    def serialize(self, d: Demanda):
+    def serialize(self, d):
         return {
                 "id": d.id_demanda,
                 "identificacao": d.identificacao,
@@ -47,9 +47,7 @@ class DemandaService:
                 "status": d.status
             }
 
-    def update_demanda(self, requerente, demanda, data):
-        if demanda not in requerente.demandas:
-            raise PermissionError("This requerente doesn't own this demanda")
+    def update_demanda(self, demanda, data):
 
         identificacao = data.get("identificacao")
         foro = data.get("foro")
@@ -88,9 +86,9 @@ class DemandaService:
     def get_demandas(self, requerente: Requerente):
         return [self.serialize(d) for d in requerente.demandas]
     
-    def delete_demanda(self, demanda: Demanda, requerente: Requerente):
-        if not demanda.id_requerente == requerente.id_requerente:
-            raise PermissionError("This requerente doesn't own this demanda")
+    def delete_demanda(self, demanda: Demanda, advogado_id: int):
+        if demanda.requerente.advogado_id != advogado_id:
+            raise PermissionError("This advogado doesn't own this demanda")
         
         try:
             self.db.session.delete(demanda)

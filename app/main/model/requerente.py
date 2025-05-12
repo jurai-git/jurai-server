@@ -1,9 +1,11 @@
+from typing import List
+
 from app.main.extensions import db
 from app.main.model import crypt_utils
 
 
 class Requerente(db.Model):
-    __name__ = 'requerente'
+    __tablename__ = 'requerente'
 
     # PKs and related stuff
     cpf_cnpj = db.Column(db.String(50), nullable=False, unique=False)
@@ -37,8 +39,7 @@ class Requerente(db.Model):
 
     # FKs
     advogado_id = db.Column(db.Integer, db.ForeignKey('advogado.id_advogado'), nullable=False)
-    demandas = db.relationship('Demanda', backref='requerente', lazy=True)
-
+    demandas = db.relationship('Demanda', back_populates='requerente', lazy='dynamic')
 
     def __init__(self,
         cpf_cnpj, nome,
