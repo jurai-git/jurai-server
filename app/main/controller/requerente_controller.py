@@ -1,31 +1,25 @@
-from flask import Blueprint, json, request, jsonify, current_app, logging
+from flask import Blueprint, json, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
 from sqlalchemy.exc import IntegrityError
 
-from app.main.service.requerente_service import RequerenteService
 from app.main.controller import require_auth
 from app.main.service.advogado_service import AdvogadoService
 
 requerente_bp = Blueprint('requerente', __name__)
 CORS(requerente_bp)
 
-@cross_origin
-@requerente_bp.route("/update", methods=['PUT'])
+@cross_origin()
+@requerente_bp.route("/<int:id>", methods=['PATCH'])
 @require_auth
-def update_requerente(advogado):
+def update_requerente(advogado, id):
     data = request.get_json()
-    id_requerente = data.get("id_requerente")
-
-    # verifications
-    if not id_requerente:
-        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
 
     with current_app.app_context():
         try:
             requerente_service = current_app.extensions['requerente_service']
 
             # get requerente
-            requerente = requerente_service.get_by_id(id_requerente)
+            requerente = requerente_service.get_by_id(id)
             if requerente is None:
                 return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
 
@@ -36,12 +30,12 @@ def update_requerente(advogado):
             return jsonify({"message": "SUCCESS", "requerente": requerente_service.serialize(requerente)}), 200
         except Exception as e:
             current_app.logger.warning(f"Returning 500 due to {e}")
-            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
+            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": str(e)}), 500
 
 
 
 @cross_origin()
-@requerente_bp.route("/new", methods=['POST'])
+@requerente_bp.route("", methods=['POST'])
 @require_auth
 def create_requerente(advogado):
     # gather data
@@ -68,8 +62,6 @@ def create_requerente(advogado):
 
     # verifications
     if not cpf_cnpj or not nome or not genero or not rg or not orgao_emissor or not estado_civil or not nacionalidade or not profissao or not cep or not logradouro or not num_imovel or not email or not bairro or not estado or not cidade:
-        print("empty fields")
-
         return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
     if not idoso:
         idoso = False
@@ -89,27 +81,21 @@ def create_requerente(advogado):
                     estado=estado, cidade=cidade, advogado_id=id
                 )
             except IntegrityError as e:
-                return jsonify({"message": "ERROR_CONFLICT"}), 409
+                return jsonify({"message": "ERROR_CONFLICT"}), 409 # teremos que mudar a PK no futuro
             return jsonify({"message": "SUCCESS"}), 201
         except Exception as e:
             current_app.logger.warning(f"Returning 500 due to {e}")
-            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
+            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": str(e)}), 500
 
 
 @cross_origin()
-@requerente_bp.route("/remove", methods=['DELETE'])
+@requerente_bp.route("/<int:requerente_id>", methods=['DELETE'])
 @require_auth
-def delete_requerente(advogado):
-    # gather data
-    data = request.get_json()
-    requerente_id = data.get('requerente_id')
-
-    if not requerente_id:
-        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
+def delete_requerente(advogado, requerente_id):
 
     with current_app.app_context():
         try:
-            requerente_service: RequerenteService = current_app.extensions['requerente_service']
+            requerente_service = current_app.extensions['requerente_service']
 
             requerente = requerente_service.get_by_id(requerente_id)
             try:
@@ -117,38 +103,31 @@ def delete_requerente(advogado):
                 return jsonify({"message": "SUCCESS"}), 200
             except PermissionError:
                 return jsonify({"message": "ERROR_INVALID_CREDENTIALS"}), 401
-            except Exception as e:
-                current_app.logger.warning(f"Returning 500 due to {e}")
-                return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
         except Exception as e:
             current_app.logger.warning(f"Returning 500 due to {e}")
-            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
-
+            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": str(e)}), 500
 
 @cross_origin()
-@requerente_bp.route("/demandas", methods=['POST'])
+@requerente_bp.route('/<int:requerente_id>', methods=['GET'])
 @require_auth
-def get_demandas(advogado):
-    data = request.get_json()
-    id_requerente = data.get("id_requerente")
-
-    if not id_requerente:
-        return jsonify({"message": "ERROR_REQUIRED_FIELDS_EMPTY"}), 400
+def get_requerente(advogado, requerente_id):
 
     with current_app.app_context():
         try:
             requerente_service = current_app.extensions['requerente_service']
-            demanda_service = current_app.extensions['demanda_service']
+            requerente = requerente_service.get_by_id(requerente_id)
 
-            requerente = requerente_service.get_by_id(id_requerente)
-
-            if not requerente:
-                return jsonify({"message": "ERROR_INVALID_ID"}), 404
-
-            if not requerente.advogado_id == advogado.id_advogado:
+            if requerente.advogado_id != advogado.id_advogado:
                 return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
 
-            return jsonify({"message": "SUCCESS", "demanda_list": demanda_service.get_demandas(requerente)}), 200
+            return jsonify({
+                "message": "success",
+                "requerente": requerente.serialize()
+            })
+
         except Exception as e:
-            current_app.logger.warning(f"Returning 500 due to {e}")
-            return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": e}), 500
+            current_app.logger.error(f"Error getting requerente: {str(e)}", exc_info=True)
+            return jsonify({
+                "message": "INTERNAL_SERVER_ERROR",
+                "error": str(e)
+            }), 500

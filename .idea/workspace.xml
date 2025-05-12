@@ -5,14 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b3784e8e-fc39-4d71-b51d-34bf7e82f38f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/test/controller/test_requerente_controller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/main/controller/advogado_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main/controller/advogado_controller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/main/controller/requerente_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main/controller/requerente_controller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/main/model/advogado.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main/model/advogado.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/main/model/requerente.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main/model/requerente.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/main/service/requerente_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main/service/requerente_service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/test/controller/test_advogado_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/test/controller/test_advogado_controller.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

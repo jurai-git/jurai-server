@@ -1,5 +1,5 @@
 from MySQLdb import Error
-from flask import current_app, session
+from flask import current_app
 from flask_mysqldb import MySQL
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import NoResultFound
@@ -40,7 +40,6 @@ class AdvogadoService:
 
     def update_advogado(self, advogado_token, username=None, email=None, oab=None, password=None):
         advogado = self.find_by_token(advogado_token)
-        advogado = self.db.session.merge(advogado)
         if not advogado:
             return None
 
@@ -77,7 +76,6 @@ class AdvogadoService:
         return self.db.session.query(Advogado).filter_by(email=email).first()
 
     def delete_advogado(self, advogado):
-        advogado = self.db.session.merge(advogado)
         try:
             self.db.session.delete(advogado)
             self.db.session.commit()

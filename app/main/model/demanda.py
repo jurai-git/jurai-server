@@ -1,6 +1,7 @@
 
 from app.main.extensions import db
 
+
 class Demanda(db.Model):
     __tablename__ = "demanda"
 
@@ -25,6 +26,8 @@ class Demanda(db.Model):
     # FKs
     ai_data = db.relationship('AiData', back_populates='demanda', uselist=False)
     id_requerente = db.Column(db.Integer, db.ForeignKey('requerente.id_requerente'), nullable=False)
+    requerente = db.relationship("Requerente", back_populates="demandas", lazy="select")
+
 
     def __init__(self, identificacao,
         foro, competencia, classe,

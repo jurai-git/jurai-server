@@ -13,13 +13,13 @@ class Advogado(db.Model):
     _password_hash = db.Column(db.String(60), nullable=False)
     _salt = db.Column(db.LargeBinary(29), nullable=False)
     _access_token = db.Column(db.String(32), nullable=False, unique=True)
-    requerentes = db.relationship('Requerente', backref='advogado', lazy=False)
+    requerentes = db.relationship('Requerente', backref='advogado' ,lazy=True)
 
     def __init__(self, username, email, oab, pwd, **kw: Any):
         super().__init__(**kw)
-        self.username = username.lower()
-        self.email = email.lower()
-        self.oab = oab.lower()
+        self.username = username
+        self.email = email
+        self.oab = oab
 
         self._salt = crypt_utils.gensalt()
         self._password_hash = crypt_utils.hash_password(pwd, self._salt).decode('utf-8')
