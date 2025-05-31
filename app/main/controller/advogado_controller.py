@@ -1,9 +1,12 @@
+import secrets
 from sqlite3 import IntegrityError
 
 from flask import Blueprint, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
+from redis import Redis
 
-from app.main.controller import require_auth, check_required_fields
+from app.main.service.email_service import EmailService
+from app.main.controller import require_auth
 from app.main.service.advogado_service import AdvogadoService
 from app.main.service.requerente_service import RequerenteService
 
@@ -180,3 +183,64 @@ def get_requerentes(advogado):
         except Exception as e:
             current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": str(e)}), 500
+
+# pasword reset (via email)
+@cross_origin()
+@advogado_bp.route('/request-reset/<email>', methods=['POST'])
+def request_reset(email: str):
+    token = secrets.token_urlsafe(32)
+
+    with current_app.app_context():
+        redis: Redis = current_app.extensions['redis']
+        email_service: EmailService = current_app.extensions['email_service']
+        advogado_service: AdvogadoService = current_app.extensions['advogado_service']
+        advogado = advogado_service.find_by_email(email)
+
+        if advogado is None:
+            return jsonify({
+                'status': 'error',
+                'message': 'ERROR_ADVOGADO_NOT_FOUND'
+            }), 404
+
+
+        redis.setex(f"pwreset:{token}", 3600, email)
+        email_service.send_pwd_recuperation(email, advogado.username, f'http://localhost:5000/static/pwd-recuperation?token={token}')
+        return jsonify({'message': 'SUCCESS'}), 200
+
+
+@cross_origin()
+@advogado_bp.route('/reset-password/', methods=['POST'])
+def reset_password():
+    data = request.get_json()
+    token = data.get('token')
+    new_password = data.get('password')
+
+    if not token or not new_password:
+        return jsonify({
+            'status': 'error',
+            'message': 'REQUIRED_FIELDS_EMPTY'
+        }), 400
+
+    with current_app.app_context():
+        redis: Redis = current_app.extensions['redis']
+        advogado_service: AdvogadoService = current_app.extensions['advogado_service']
+
+        email = redis.get(f'pwreset:{token}')
+        if not email:
+            return jsonify({
+                'status': 'error',
+                'message': 'INVALID_PASSWORD_RESET_TOKEN'
+            }), 400
+
+        advogado = advogado_service.find_by_email(email)
+        if advogado is None:
+            current_app.logger.debug(f"The email related to the password token was invalid. The account which requested the password reset was probably deleted.")
+            return jsonify({
+                'status': 'error',
+                'message': 'INVALID_PASSWORD_RESET_TOKEN'
+            }), 400
+
+        advogado_service.update_advogado(advogado.access_token, password=new_password)
+        redis.delete(f'pwreset:{token}')
+        return jsonify({'message': 'SUCCESS'}), 200
+

@@ -1,31 +1,50 @@
 import os
 
 from flask import Flask, jsonify, request
-from flask_cors import cross_origin
 
 from dotenv import load_dotenv
 from app.config import Config
 from app.main.service.advogado_service import AdvogadoService
+from app.main.service.email_service import EmailService
 from app.main.service.requerente_service import RequerenteService
 from app.main.service.demanda_service import DemandaService
-from app.main.extensions import db
+from app.main.extensions import db, redis
 from app.main import get_ai_bp
-
-from flask_cors import CORS
 
 def create_app(use_ai=True, config_class=Config):
     # create the app
+    load_dotenv()
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
     os.makedirs(app.config['VAR_FOLDER'], exist_ok=True)
-    load_dotenv()
+
+    # check for env variables
+    required_env_vars = [
+        'MYSQL_HOST',
+        'MYSQL_USER',
+        'MYSQL_PASSWORD',
+        'MYSQL_DB',
+        'SMTP_SENDER',
+        'SMTP_PASSWORD'
+    ]
+
+    missing = [var for var in required_env_vars if not os.getenv(var)]
+
+    if missing:
+        raise RuntimeError(f'Missing env vars: {", ".join(missing)}')
+
+    db_host = os.getenv('MYSQL_HOST')
+    db_user = os.getenv('MYSQL_USER')
+    db_password = os.getenv('MYSQL_PASSWORD')
+    db_name = os.getenv('MYSQL_DB')
+
+    smtp_host = os.getenv('SMTP_HOST')
+    smtp_port = int(os.getenv('SMTP_PORT', 587))
+    smtp_sender = os.getenv('SMTP_SENDER')
+    smtp_password = os.getenv('SMTP_PASSWORD')
 
     # db initialization
-    host = os.getenv("MYSQL_HOST")
-    user = os.getenv("MYSQL_USER")
-    password = os.getenv("MYSQL_PASSWORD")
-    db_name = os.getenv("MYSQL_DB")
-    app.config['SQLALCHEMY_DATABASE_URI'] = ("mysql+mysqlconnector://" + user + ":" + password + "@" + host + ":3306/" + db_name)
+    app.config['SQLALCHEMY_DATABASE_URI'] = ('mysql+mysqlconnector://' + db_user + ':' + db_password + '@' + db_host + ':3306/' + db_name)
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         'pool_size': 10,
         'max_overflow': 5,
@@ -56,19 +75,24 @@ def create_app(use_ai=True, config_class=Config):
     demanda_service = DemandaService(db)
     app.extensions['demanda_service'] = demanda_service
 
-    @app.before_request
-    def before_request():
-        request.charset = 'utf-8'
+    email_service = EmailService(smtp_sender, smtp_password, smtp_server=smtp_host, smtp_port=smtp_port)
+    app.extensions['email_service'] = email_service
 
+    # initialize redis
+    app.extensions['redis'] = redis
+
+
+    # requests configs
     @app.after_request
     def cors_postprocess(response):
-            response.headers["Access-Control-Allow-Origin"] = "*"
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+            response.headers['Access-Control-Allow-Origin'] = '*'
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
             return response
 
     @app.before_request
     def handle_options():
+        request.charset = 'utf-8'
         if request.method == 'OPTIONS':
             return '', 204
 
@@ -76,16 +100,15 @@ def create_app(use_ai=True, config_class=Config):
     def index():
         return jsonify({"url_map": app.url_map.__str__()}), 200
 
-
-    @app.route("/teapot/")
+    @app.route('/teapot/')
     def teapot():
-        return jsonify({"message": "IM_A_TEAPOT"}), 418
+        return jsonify({'message': 'IM_A_TEAPOT'}), 418
 
     from app.main import main_bp as main_bp
     app.register_blueprint(main_bp)
 
     if use_ai:
-        print("using ai")
+        print('using ai')
         app.register_blueprint(get_ai_bp())
 
     return app
