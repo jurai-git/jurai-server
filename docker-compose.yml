@@ -7,6 +7,13 @@ services:
       - redis
     environment:
       - REDIS_URL=redis://redis:6379
+      - MYSQL_HOST
+      - MYSQL_DB
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+      - SMTP_SENDER
+      - SMTP_PASSWORD
+      - USE_AI
 
   redis:
     image: redis:latest
