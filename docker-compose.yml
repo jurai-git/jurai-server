@@ -14,8 +14,17 @@ services:
       - SMTP_SENDER
       - SMTP_PASSWORD
       - USE_AI
+    networks:
+      - app-network
 
   redis:
     image: redis:latest
+    command: ["redis-server", "--bind", "0.0.0.0"]
     ports:
       - "6379:6379"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
