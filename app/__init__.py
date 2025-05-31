@@ -38,7 +38,7 @@ def create_app(use_ai=True, config_class=Config):
     db_password = os.getenv('MYSQL_PASSWORD')
     db_name = os.getenv('MYSQL_DB')
 
-    smtp_host = os.getenv('SMTP_HOST')
+    smtp_host = os.getenv('SMTP_HOST', 'smtp.gmail.com')
     smtp_port = int(os.getenv('SMTP_PORT', 587))
     smtp_sender = os.getenv('SMTP_SENDER')
     smtp_password = os.getenv('SMTP_PASSWORD')
