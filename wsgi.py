@@ -1,5 +1,5 @@
 from app import create_app
-from app.config import Config
-import sys
+import os
 
-app = create_app(use_ai=False)
+use_ai = os.getenv("USE_AI", "false").lower() == "true"
+app = create_app(use_ai=use_ai)

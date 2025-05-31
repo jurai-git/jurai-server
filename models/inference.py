@@ -11,7 +11,7 @@ def args_inference(model, tokenizer, text) -> flask.jsonify:
 
 def prob_inference(model, tokenizer, text) -> flask.jsonify:
     prediction = model.predict(
-        preprocess_text(text, tokenizer, 900)
+        preprocess_text(text.lower(), tokenizer, 900)
     )
 
     class_labels = {

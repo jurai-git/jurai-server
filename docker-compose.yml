@@ -1,0 +1,14 @@
+services:
+  flask:
+    build: .
+    ports:
+      - "8080:8000"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
