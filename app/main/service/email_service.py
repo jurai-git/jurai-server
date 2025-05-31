@@ -17,7 +17,6 @@ class EmailService:
 
 
     def send_email(self, to_email, subject,  content):
-        print(f"Sending email with password {self.password}, and email {self.sender}")
         msg = EmailMessage()
         msg['Subject'] = subject
         msg['To'] = to_email
@@ -27,7 +26,7 @@ class EmailService:
         self._send(msg)
 
 
-    def send_pwd_recuperation(self, to_email, username, link):
+    def send_pwd_recovery(self, to_email, username, link):
         self.send_email(to_email, 'Recuperação de senha JurAI', f"""
             Olá, {username}!\n
             Recebemos uma solicitação de recuperação de senha da conta JurAI associada ao seu email.\n

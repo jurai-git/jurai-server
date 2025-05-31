@@ -1,7 +1,7 @@
 import secrets
 from sqlite3 import IntegrityError
 
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, send_from_directory
 from flask_cors import CORS, cross_origin
 from redis import Redis
 
@@ -204,7 +204,7 @@ def request_reset(email: str):
 
 
         redis.setex(f"pwreset:{token}", 3600, email)
-        email_service.send_pwd_recuperation(email, advogado.username, f'http://localhost:5000/static/pwd-recuperation?token={token}')
+        email_service.send_pwd_recovery(email, advogado.username, f'{request.host_url}/recovery?token={token}&username={advogado.username}')
         return jsonify({'message': 'SUCCESS'}), 200
 
 
@@ -230,7 +230,7 @@ def reset_password():
             return jsonify({
                 'status': 'error',
                 'message': 'INVALID_PASSWORD_RESET_TOKEN'
-            }), 400
+            }), 401
 
         advogado = advogado_service.find_by_email(email)
         if advogado is None:
@@ -238,7 +238,7 @@ def reset_password():
             return jsonify({
                 'status': 'error',
                 'message': 'INVALID_PASSWORD_RESET_TOKEN'
-            }), 400
+            }), 401
 
         advogado_service.update_advogado(advogado.access_token, password=new_password)
         redis.delete(f'pwreset:{token}')

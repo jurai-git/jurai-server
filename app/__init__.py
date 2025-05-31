@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 
 from dotenv import load_dotenv
 from app.config import Config
@@ -14,7 +14,7 @@ from app.main import get_ai_bp
 def create_app(use_ai=True, config_class=Config):
     # create the app
     load_dotenv()
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__, static_folder='static', static_url_path='', instance_relative_config=True)
     app.config.from_object(config_class)
     os.makedirs(app.config['VAR_FOLDER'], exist_ok=True)
 
@@ -103,6 +103,14 @@ def create_app(use_ai=True, config_class=Config):
     @app.route('/teapot/')
     def teapot():
         return jsonify({'message': 'IM_A_TEAPOT'}), 418
+
+    @app.route('/recovery/<path:filename>')
+    def serve_recovery_static(filename):
+        return send_from_directory(app.static_folder, filename)
+
+    @app.route('/recovery/')
+    def serve_recovery_index():
+        return send_from_directory(app.static_folder, 'index.html')
 
     from app.main import main_bp as main_bp
     app.register_blueprint(main_bp)
