@@ -35,16 +35,24 @@ MYSQL_HOST = '111.222.333.4'
 MYSQL_USER = 'user'
 MYSQL_PASSWORD = 'pwd'
 MYSQL_DB = 'database_schema'
+SMTP_SENDER = 'seu_email@email.com'
+SMTP_PASSWORD = 'senha_do_seu_email'
 ```
 Troque as informações do banco de dados de acordo com o seu banco. Você não poderá ter tabelas chamadas `advogado`, `requerente` e `demanda` em seu banco, pois tabelas de mesmo nome serão criadas pelo servidor.
 
-#### 4 - Configurar os modelos de IA
-
-Os modelos e datasets não são disponibilizados neste github por serem muito grandes, mas serão disponibilizados em outra plataforma no futuro.
+Para facilitar o uso do docker, copie este arquivo para a raíz do projeto também.
 
 #### 3 - Executar o server
 
 Após fazer essas configurações básicas, você poderá executar o servidor.
-Para fazer isso, basta executar:
+Para executar em ambiente de desenvolvimento, apenas use:
 
-`flask run`
+`python run.py`
+
+Para executar em ambiente de produção, use:
+
+`docker-compose up --build`
+
+#### 4 - Configurar os modelos de IA
+
+Os modelos e datasets não são disponibilizados neste github por serem muito grandes, mas serão disponibilizados em outra plataforma no futuro.
