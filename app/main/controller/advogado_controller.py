@@ -185,6 +185,7 @@ def get_requerentes(advogado):
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": str(e)}), 500
 
 # pasword reset (via email)
+# TODO: only allow one reset email per minute, for a max of 10 resets in one hor
 @cross_origin()
 @advogado_bp.route('/request-reset/<email>', methods=['POST'])
 def request_reset(email: str):

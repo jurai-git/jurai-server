@@ -6,7 +6,7 @@ services:
     depends_on:
       - redis
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL
       - MYSQL_HOST
       - MYSQL_DB
       - MYSQL_USER
