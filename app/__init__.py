@@ -10,6 +10,7 @@ from app.main.service.requerente_service import RequerenteService
 from app.main.service.demanda_service import DemandaService
 from app.main.extensions import db, redis
 from app.main import get_ai_bp
+from app.main.model.advogado_pfp import AdvogadoPFP
 
 def create_app(use_ai=True, config_class=Config):
     # create the app
@@ -38,7 +39,7 @@ def create_app(use_ai=True, config_class=Config):
     db_password = os.getenv('MYSQL_PASSWORD')
     db_name = os.getenv('MYSQL_DB')
 
-    smtp_host = os.getenv('SMTP_HOST', 'smtp.gmail.com')
+    smtp_host = os.getenv('SMTP_HOST')
     smtp_port = int(os.getenv('SMTP_PORT', 587))
     smtp_sender = os.getenv('SMTP_SENDER')
     smtp_password = os.getenv('SMTP_PASSWORD')
@@ -65,6 +66,7 @@ def create_app(use_ai=True, config_class=Config):
         from app.main.model.requerente import Requerente
         from app.main.model.demanda import Demanda
         from app.main.model.ai_data import AiData
+        from app.main.model.advogado_pfp import AdvogadoPFP
         db.create_all()
 
     # service initialization
