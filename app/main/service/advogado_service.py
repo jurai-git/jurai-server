@@ -59,7 +59,10 @@ class AdvogadoService:
         output.seek(0)
         return output
 
-    def add_pfp(self, advogado: Advogado, file):
+    def add_pfp(self, advogado: Advogado, file: FileStorage):
+        if "image" not in file.mimetype:
+            raise ValueError("The file is in the wrong format")
+
         processed_img = self._prepare_pfp(file)
         pic = AdvogadoPFP(
             id_advogado = advogado.id_advogado,
@@ -89,8 +92,6 @@ class AdvogadoService:
         except Exception as e:
             self.db.session.rollback()
             raise e
-
-
 
     def update_advogado(self, advogado_token, username=None, email=None, oab=None, password=None):
         advogado = self.find_by_token(advogado_token)

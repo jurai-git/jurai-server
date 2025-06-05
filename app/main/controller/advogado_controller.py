@@ -187,6 +187,9 @@ def add_picture(advogado):
 
         try:
             advogado_service.add_pfp(advogado, file)
+        except ValueError as e:
+            current_app.logger.warning(f"Returning 400 on add_picture due to ValueError - the file was probably in a bad format {e}")
+            return jsonify({"message": "ERROR_INVALID_FILE_FORMAT"}), 400
         except Exception as e:
             current_app.logger.warning(f"Returning 500 on add_picture due to {e}")
             return jsonify({
@@ -229,7 +232,7 @@ def get_demandas(advogado, id_requerente):
             requerente = requerente_service.get_by_id(id_requerente)
 
             if not requerente:
-                return jsonify({"message": "ERROR_INVALID_ID"}), 404
+                return jsonify({"message": "ERROR_INVALID_ID"}), 4042
 
             if not requerente.advogado_id == advogado.id_advogado:
                 return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
