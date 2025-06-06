@@ -132,6 +132,7 @@ class AdvogadoService:
 
     def delete_advogado(self, advogado):
         try:
+            advogado = self.db.session.merge(advogado)
             self.db.session.delete(advogado)
             self.db.session.commit()
         except Exception as e:
