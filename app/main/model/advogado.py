@@ -15,6 +15,8 @@ class Advogado(db.Model):
     _access_token = db.Column(db.String(32), nullable=False, unique=True)
     requerentes = db.relationship('Requerente', backref='advogado' ,lazy=True)
 
+    advogado_pfp = db.relationship("AdvogadoPFP", back_populates="advogado", uselist=False, cascade="all, delete")
+
     def __init__(self, username, email, oab, pwd, **kw: Any):
         super().__init__(**kw)
         self.username = username

@@ -1,9 +1,12 @@
 import secrets
+import traceback
 from sqlite3 import IntegrityError
+from types import TracebackType
 
-from flask import Blueprint, request, jsonify, current_app, send_from_directory
+from flask import Blueprint, request, jsonify, current_app, send_file
 from flask_cors import CORS, cross_origin
 from redis import Redis
+from sqlalchemy.exc import NoResultFound
 
 from app.main.service.email_service import EmailService
 from app.main.controller import require_auth
@@ -146,6 +149,77 @@ def update_advogado(advogado):
         return jsonify({"message": "success", "access_token": result.access_token}), 200
 
 @cross_origin()
+@advogado_bp.route('/pfp', methods=['DELETE'])
+@require_auth
+def delete_picture(advogado):
+    with current_app.app_context():
+        advogado_service = current_app.extensions['advogado_service']
+
+        try:
+            advogado_service.remove_pfp(advogado)
+        except NoResultFound:
+            return jsonify({
+                'message': 'ERROR_INVALID_ID'
+            }), 400
+        except Exception as e:
+            current_app.logger.warning(f"Returning 500 on delete_picture due to {e}")
+            return jsonify({
+                'message': 'INTERNAL_SERVER_ERROR'
+            }), 500
+
+    return jsonify({
+        'message': 'SUCCESS'
+    }), 200
+
+@cross_origin()
+@advogado_bp.route('/pfp', methods=['POST', 'PATCH'])
+@require_auth
+def add_picture(advogado):
+    with current_app.app_context():
+        advogado_service = current_app.extensions['advogado_service']
+        file = request.files.get('picture')
+
+        if not file:
+            return jsonify({
+                'status': 'error',
+                'message': 'REQUIRED_FIELDS_EMPTY'
+            }), 400
+
+        try:
+            advogado_service.add_pfp(advogado, file)
+        except ValueError as e:
+            current_app.logger.warning(f"Returning 400 on add_picture due to ValueError - the file was probably in a bad format {e}")
+            return jsonify({"message": "ERROR_INVALID_FILE_FORMAT"}), 400
+        except Exception as e:
+            current_app.logger.warning(f"Returning 500 on add_picture due to {e}")
+            return jsonify({
+                "message": "INTERNAL_SERVER_ERROR"
+            }), 500
+
+    return jsonify({
+        'message': 'SUCCESS'
+    }), 200
+
+@cross_origin()
+@advogado_bp.route("/<int:id_advogado>/pfp", methods=['GET'])
+def get_advogado_picture(id_advogado: int):
+
+    with current_app.app_context():
+        advogado_service = current_app.extensions['advogado_service']
+        try:
+            return send_file(advogado_service.get_pfp_by_id(id_advogado), mimetype="image/jpeg")
+        except NoResultFound:
+            return jsonify({
+                'message': 'ERROR_INVALID_ID'
+            }), 404
+        except Exception as e:
+            current_app.logger.warning(f"Returning 500 on get_advogado_picture due to {e}")
+            return jsonify({
+                "message": "INTERNAL_SERVER_ERROR"
+            }), 500
+
+
+@cross_origin()
 @advogado_bp.route("/requerente/<int:id_requerente>/demandas", methods=['GET'])
 @require_auth
 def get_demandas(advogado, id_requerente):
@@ -158,7 +232,7 @@ def get_demandas(advogado, id_requerente):
             requerente = requerente_service.get_by_id(id_requerente)
 
             if not requerente:
-                return jsonify({"message": "ERROR_INVALID_ID"}), 404
+                return jsonify({"message": "ERROR_INVALID_ID"}), 4042
 
             if not requerente.advogado_id == advogado.id_advogado:
                 return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
@@ -212,7 +286,7 @@ def request_reset(email: str):
 @cross_origin()
 @advogado_bp.route('/reset-password/', methods=['POST'])
 def reset_password():
-    data = request.get_json()
+    data = request.get_json(),
     token = data.get('token')
     new_password = data.get('password')
 
@@ -245,3 +319,25 @@ def reset_password():
         redis.delete(f'pwreset:{token}')
         return jsonify({'message': 'SUCCESS'}), 200
 
+@cross_origin()
+@advogado_bp.route('/demandas', methods=['GET'])
+@require_auth
+def get_all_demandas(advogado):
+
+    with current_app.app_context():
+        demanda_service = current_app.extensions['demanda_service']
+
+        try:
+            demandas = demanda_service.get_all_by_advogado(advogado)
+            return jsonify({
+                'status': 'success',
+                'demandas': [
+                    demanda_service.serialize(d) for d in demandas
+                ]
+            })
+        except Exception as e:
+            current_app.logger.warning(f"Returning 500 on get_all_demandas due to {e}")
+            return jsonify({
+                'status': 'error',
+                'message': 'INTERNAL_SERVER_ERROR'
+            })

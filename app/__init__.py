@@ -10,6 +10,7 @@ from app.main.service.requerente_service import RequerenteService
 from app.main.service.demanda_service import DemandaService
 from app.main.extensions import db, redis
 from app.main import get_ai_bp
+from app.main.model.advogado_pfp import AdvogadoPFP
 
 def create_app(use_ai=True, config_class=Config):
     # create the app
@@ -65,6 +66,7 @@ def create_app(use_ai=True, config_class=Config):
         from app.main.model.requerente import Requerente
         from app.main.model.demanda import Demanda
         from app.main.model.ai_data import AiData
+        from app.main.model.advogado_pfp import AdvogadoPFP
         db.create_all()
 
     # service initialization
