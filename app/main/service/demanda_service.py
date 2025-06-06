@@ -1,3 +1,4 @@
+from app.main.model.advogado import Advogado
 from app.main.model.demanda import Demanda
 from app.main.model.requerente import Requerente
 
@@ -96,6 +97,9 @@ class DemandaService:
         except Exception as e:
             self.db.session.rollback()
             raise e
+
+    def get_all_by_advogado(self, advogado: Advogado):
+        return Demanda.query.join(Requerente).filter(Requerente.advogado_id == advogado.id_advogado).all()
 
     def get_by_id(self, id_query):
         return self.db.session.query(Demanda).filter_by(id_demanda=id_query).first()

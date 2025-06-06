@@ -318,3 +318,26 @@ def reset_password():
         advogado_service.update_advogado(advogado.access_token, password=new_password)
         redis.delete(f'pwreset:{token}')
         return jsonify({'message': 'SUCCESS'}), 200
+
+@cross_origin()
+@advogado_bp.route('/demandas', methods=['GET'])
+@require_auth
+def get_all_demandas(advogado):
+
+    with current_app.app_context():
+        demanda_service = current_app.extensions['demanda_service']
+
+        try:
+            demandas = demanda_service.get_all_by_advogado(advogado)
+            return jsonify({
+                'status': 'success',
+                'demandas': [
+                    demanda_service.serialize(d) for d in demandas
+                ]
+            })
+        except Exception as e:
+            current_app.logger.warning(f"Returning 500 on get_all_demandas due to {e}")
+            return jsonify({
+                'status': 'error',
+                'message': 'INTERNAL_SERVER_ERROR'
+            })
