@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from app.config import Config
 from app.main.service.advogado_service import AdvogadoService
 from app.main.service.email_service import EmailService
+from app.main.service.processo_service import ProcessoService
 from app.main.service.requerente_service import RequerenteService
 from app.main.service.demanda_service import DemandaService
 from app.main.extensions import db, redis
@@ -28,6 +29,10 @@ def create_app(use_ai=True, config_class=Config):
         'SMTP_SENDER',
         'SMTP_PASSWORD'
     ]
+    if use_ai:
+        required_env_vars.append('GEMINI_API_KEY')
+        required_env_vars.append('PINECONE_API_KEY')
+        required_env_vars.append('PINECONE_INDEX_URL')
 
     missing = [var for var in required_env_vars if not os.getenv(var)]
 
@@ -76,12 +81,24 @@ def create_app(use_ai=True, config_class=Config):
     app.extensions['requerente_service'] = requerente_service
     demanda_service = DemandaService(db)
     app.extensions['demanda_service'] = demanda_service
+    processo_service = ProcessoService(db)
+    app.extensions['processo_service'] = processo_service
 
     email_service = EmailService(smtp_sender, smtp_password, smtp_server=smtp_host, smtp_port=smtp_port)
     app.extensions['email_service'] = email_service
 
     # initialize redis
     app.extensions['redis'] = redis
+
+    # if using ai, initialize RAG and ai service
+    if use_ai:
+        from app.main.ai_extensions import retriever
+        app.extensions['retriever'] = retriever
+
+        from app.main.service.ai_service import AIService
+        ai_service = AIService(db, retriever=retriever)
+        app.extensions['ai_service'] = ai_service
+
 
 
     # requests configs
@@ -117,6 +134,7 @@ def create_app(use_ai=True, config_class=Config):
     from app.main import main_bp as main_bp
     app.register_blueprint(main_bp)
 
+    # register AI endpoints
     if use_ai:
         print('using ai')
         app.register_blueprint(get_ai_bp())

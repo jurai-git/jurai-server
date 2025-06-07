@@ -1,7 +1,7 @@
 import flask
 import numpy as np
 from flask import jsonify
-from models.utils import *
+from models.probability.utils import *
 
 
 def args_inference(model, tokenizer, text) -> flask.jsonify:

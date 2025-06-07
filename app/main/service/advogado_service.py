@@ -9,7 +9,6 @@ from app.main.model.advogado_pfp import AdvogadoPFP
 
 from PIL import Image
 
-
 class AdvogadoService:
 
     def __init__(self, db: SQLAlchemy):
