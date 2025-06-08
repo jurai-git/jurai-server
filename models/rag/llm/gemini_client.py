@@ -32,7 +32,7 @@ class GeminiClient:
             
             Exemplos:
             Consulta ruim: 'Oi, estou com um caso em que meu cliente foi negativado indevidamente por uma operadora de telecomunicações - mais especificamente a Vivo -, e queria saber quais são os argumentos mais comuns que os juízes do TJMG costumam aceitar para conceder danos morais?'
-            Consulta boa: 'Negativação indevida por operadora de telecomunicações, Vivo'
+            Consulta boa: 'Negativação indevida por operadora de telecomunicações, operadora X'
             Você deve responder **apenas** com a consulta refinada, **sem aspas, sem pontuação extra e sem qualquer texto antes ou depois**. A resposta será usada diretamente por uma API.
         """
 
@@ -77,7 +77,7 @@ class GeminiClient:
 
         {self._ementas_to_prompt(ementas)}
 
-        [responda somente com uma lista numérica, exemplo: [0.92, 0.45, 0.0], SEM aspas, sem formatação extra, sem explicações.]
+        [responda somente com uma lista numérica, exemplo: [0.92, 0.45, 0.0], SEM aspas, sem formatação extra, sem ``` (backticks), sem explicações.]
         """
 
         response = self.client.models.generate_content(
@@ -86,7 +86,7 @@ class GeminiClient:
             config=types.GenerateContentConfig(
                 system_instruction=prompt,
                 max_output_tokens=100,
-                temperature=0.35
+                temperature=0.1
             )
         )
 
@@ -96,17 +96,14 @@ class GeminiClient:
 
     def generate_answer_from_context(self, query: str, contexts: List[GeminiContext]) -> str:
         prompt = f"""
-        Você é um assistente jurídico especialista em jurisprudência brasileira. Você receberá uma pergunta de um advogado sobre jurisprudência, junto com uma lista de documentos legais contendo Súmula, Ementa, Acórdão e um score de relevância para cada documento.
-        
-        Utilize as informações mais relevantes desses documentos para fundamentar sua resposta, mas também combine com seu conhecimento jurídico consolidado para elaborar uma resposta clara, completa e atualizada, que reflita a prática jurídica brasileira atual. A resposta deve ser precisa, profissional e contextualizada, explicando conceitos essenciais mesmo que não estejam explicitamente detalhados nos documentos, desde que estejam em consonância com o entendimento jurídico vigente.
-        
-        Não mencione nem insinue que a resposta foi gerada com base em documentos específicos ou em qualquer sistema de recuperação de informações. Forneça a resposta de forma genérica, preservando a confidencialidade e mantendo o foco no conteúdo útil para o advogado.
-        
-        Documentos:
-        {self._contexts_to_prompt(contexts)}
-
+            Você é um assistente jurídico especialista em jurisprudência brasileira. Você receberá uma pergunta de um advogado sobre jurisprudência, junto com uma lista de documentos legais contendo Súmula, Ementa, Acórdão e um score de relevância para cada documento.
             
+            Utilize as informações mais relevantes desses documentos para fundamentar sua resposta, mas também combine com seu conhecimento jurídico consolidado para elaborar uma resposta clara, completa e atualizada, que reflita a prática jurídica brasileira atual. A resposta deve ser precisa, profissional e contextualizada, explicando conceitos essenciais mesmo que não estejam explicitamente detalhados nos documentos, desde que estejam em consonância com o entendimento jurídico vigente.
             
+            Não mencione nem insinue que a resposta foi gerada com base em documentos específicos ou em qualquer sistema de recuperação de informações. Forneça a resposta de forma genérica, preservando a confidencialidade e mantendo o foco no conteúdo útil para o advogado.
+            
+            Documentos:
+            {self._contexts_to_prompt(contexts)}
         """
 
         response = self.client.models.generate_content(
