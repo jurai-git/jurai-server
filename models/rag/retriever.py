@@ -25,13 +25,13 @@ class Retriever:
         self.pc = Pinecone(api_key=pinecone_api_key)
         self.index = self.pc.Index(host=pinecone_index_url)
 
-    def semantic_search(self, search: str) -> List[RetrievalEntry]:
+    def semantic_search(self, search: str, count: int = 3) -> List[RetrievalEntry]:
         search = preprocess_semantic_search(search)
         embeddings = self._embed(search)
 
         results = self.index.query(
             vector=embeddings,
-            top_k=3,
+            top_k=count,
             include_metadata=True,
             include_values=False
         )['matches']

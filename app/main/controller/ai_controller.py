@@ -1,11 +1,11 @@
-from typing import List
+from typing import List, Tuple
 
 from flask import Blueprint, current_app, request
+from flask.wrappers import Response
 from flask_cors import CORS, cross_origin
 
 from app.main.controller import require_auth
 from app.main.model.dto.semantic_search_dto import SemanticSearchDTO
-from app.main.model.processo import Processo
 from app.main.util import pdf_utils as pdf, normalizer
 
 from keras.src.saving import load_model
@@ -61,26 +61,40 @@ def semantic_search(advogado):
         ai_service = current_app.extensions['ai_service']
         processo_service = current_app.extensions['processo_service']
 
-        entries = ai_service.semantic_search(search)
-        processos = processo_service.get_all_by_num_tjmg([entry.numero_tjmg for entry in entries])
+        dtos = ai_service.retrieve_or_return_error(search, processo_service)
 
-        if len(processos) == 0 or len(entries) == 0:
-            return jsonify({
-                'status': 'error',
-                'message': 'ERROR_NO_ENTRIES_FOUND'
-            }), 404
-
-        if len(processos) != len(entries):
-            return jsonify({
-                'status': 'error',
-                'message': 'INTEGRITY_ERROR'
-            }), 500
-
-        dtos: List[SemanticSearchDTO] = []
-        for i, _ in enumerate(processos):
-            dtos.append(SemanticSearchDTO(processos[i], entries[i].similarity))
+        if type(dtos) == tuple: # error
+            return dtos
 
         return jsonify({
             'status': 'SUCCESS',
             'entries': [dto.serialize() for dto in dtos]
         })
+
+@cross_origin()
+@ai_bp.route('/rag', methods=['GET'])
+@require_auth
+def rag(advogado):
+    data = request.get_json()
+    query = data.get('query')
+
+    if not query:
+        return jsonify({
+            'status': 'error',
+            'message': 'ERROR_REQUIRED_FIELDS_EMPTY'
+        }), 400
+
+    with current_app.app_context():
+        ai_service = current_app.extensions['ai_service']
+        processo_service = current_app.extensions['processo_service']
+
+        refined_query = ai_service.refine_query(query)
+        search_result = ai_service.retrieve_or_return_error(refined_query, processo_service)
+
+        if type(search_result) == tuple: # error
+            return search_result
+
+        return ai_service.generate_final_answer_or_error(query, search_result)
+
+
+

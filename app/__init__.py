@@ -90,15 +90,17 @@ def create_app(use_ai=True, config_class=Config):
     # initialize redis
     app.extensions['redis'] = redis
 
-    # if using ai, initialize RAG and ai service
+    # if using AI, initialize RAG, AI service and gemini client
     if use_ai:
         from app.main.ai_extensions import retriever
         app.extensions['retriever'] = retriever
 
-        from app.main.service.ai_service import AIService
-        ai_service = AIService(db, retriever=retriever)
-        app.extensions['ai_service'] = ai_service
+        from app.main.ai_extensions import gemini_client
+        app.extensions['gemini_client'] = gemini_client
 
+        from app.main.service.ai_service import AIService
+        ai_service = AIService(db, retriever=retriever, gemini_client=gemini_client)
+        app.extensions['ai_service'] = ai_service
 
 
     # requests configs
