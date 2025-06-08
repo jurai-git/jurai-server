@@ -92,7 +92,7 @@ class GeminiClient:
 
         print(f"EMENTA RELEVANCES: {response.text}")
 
-        return literal_eval(response.text)
+        return literal_eval(response.text.replace('python', '').replace('`', '').strip())
 
     def generate_answer_from_context(self, query: str, contexts: List[GeminiContext]) -> str:
         prompt = f"""
