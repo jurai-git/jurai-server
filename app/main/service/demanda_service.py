@@ -45,7 +45,8 @@ class DemandaService:
                 "justica_gratuita": d.justica_gratuita,
                 "guia_custas": d.guia_custas,
                 "resumo": d.resumo,
-                "status": d.status
+                "status": d.status,
+                "dono": d.requerente.nome,
             }
 
     def update_demanda(self, demanda, data):

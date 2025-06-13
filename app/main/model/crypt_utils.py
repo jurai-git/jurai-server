@@ -1,6 +1,6 @@
 import secrets
-
 import bcrypt
+
 def gensalt():
     return bcrypt.gensalt()
 

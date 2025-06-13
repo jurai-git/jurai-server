@@ -47,7 +47,7 @@ class Retriever:
         return entries
 
     def _embed(self, string: str):
-        return self.model.encode(string).tolist()
+        return self.model.encode(string, batch_size=1).tolist()
 
     def _embed_batch(self, batch: List[str]):
         return self.model.encode(batch).tolist()

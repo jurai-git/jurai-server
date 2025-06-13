@@ -25,9 +25,8 @@ prob_tokenizer = build_tokenizer_from_csv(
 )
 
 @cross_origin()
-@require_auth
 @ai_bp.route('/probability', methods=['POST'])
-def probability_model(advogado):
+def probability_model():
     try:
         text = ''
         json = request.get_json()
@@ -95,6 +94,5 @@ def rag(advogado):
             return search_result
 
         return ai_service.generate_final_answer_or_error(query, search_result)
-
 
 
