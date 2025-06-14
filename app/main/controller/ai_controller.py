@@ -71,7 +71,7 @@ def semantic_search(advogado):
         })
 
 @cross_origin()
-@ai_bp.route('/rag', methods=['GET'])
+@ai_bp.route('/rag', methods=['POST'])
 @require_auth
 def rag(advogado):
     data = request.get_json()

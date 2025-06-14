@@ -46,7 +46,10 @@ class AIService:
                 ementa_relevances[i],
             ))
 
-        return self.gemini_client.generate_answer_from_context(query, gemini_contexts)
+        return jsonify({
+            "status": "SUCCESS",
+            "response": self.gemini_client.generate_answer_from_context(query, gemini_contexts)
+        }), 200
 
     def retrieve_or_return_error(self, query: str, processo_service) -> List[SemanticSearchDTO] | Tuple[Response, int]:
         with current_app.app_context():
