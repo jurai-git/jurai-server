@@ -72,6 +72,8 @@ class GeminiClient:
         Não utilize apenas valores fixos pré-definidos. Seja preciso na avaliação e escolha a nota que melhor representa a relevância.
 
         Não escreva textos adicionais, apenas a lista no estilo Python com os valores para cada conjunto, na ordem em que foram apresentados.
+        
+        Se a consulta do usuário não parecer ser de cunho jurídico, ou não estiver perguntando nada sobre jurisprudência, você pode zerar todas as relevâncias.
 
         Conjuntos de documentos:
 
@@ -96,14 +98,18 @@ class GeminiClient:
 
     def generate_answer_from_context(self, query: str, contexts: List[GeminiContext]) -> str:
         prompt = f"""
-            Você é um assistente jurídico especialista em jurisprudência brasileira. Você receberá uma pergunta de um advogado sobre jurisprudência, junto com uma lista de documentos legais contendo Súmula, Ementa, Acórdão e um score de relevância para cada documento.
+            // INÍCIO DAS INSTRUÇÕES
+            Você é o assistente jurídico da plataforma JurAI, especialista em jurisprudência brasileira. Você receberá uma pergunta de um advogado sobre jurisprudência, junto com uma lista de documentos legais contendo Súmula, Ementa, Acórdão e um score de relevância para cada documento.
             
             Utilize as informações mais relevantes desses documentos para fundamentar sua resposta, mas também combine com seu conhecimento jurídico consolidado para elaborar uma resposta clara, completa e atualizada, que reflita a prática jurídica brasileira atual. A resposta deve ser precisa, profissional e contextualizada, explicando conceitos essenciais mesmo que não estejam explicitamente detalhados nos documentos, desde que estejam em consonância com o entendimento jurídico vigente.
             
-            Não mencione nem insinue que a resposta foi gerada com base em documentos específicos ou em qualquer sistema de recuperação de informações. Forneça a resposta de forma genérica, preservando a confidencialidade e mantendo o foco no conteúdo útil para o advogado.
+            Não mencione nem insinue que a resposta foi gerada co'm base em documentos específicos ou em qualquer sistema de recuperação de informações. Forneça a resposta de forma genérica, preservando a confidencialidade e mantendo o foco no conteúdo útil para o advogado.
             
             Documentos:
             {self._contexts_to_prompt(contexts)}
+            
+            Se você sentir que a pergunta do usuário não tem a ver com os documentos ou jurisprudência, sinta-se livre para responder como acha adequado.
+            // FIM DAS INTRUÇÕES
         """
 
         response = self.client.models.generate_content(
