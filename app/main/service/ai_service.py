@@ -18,7 +18,7 @@ class AIService:
         self.gemini_client = gemini_client
 
     def semantic_search(self, search: str) -> List[RetrievalEntry]:
-        return self.retriever.semantic_search(search, count=7)
+        return self.retriever.semantic_search(search, count=5)
 
     def refine_query(self, query: str) -> str:
         return self.gemini_client.rewrite_query_for_retrieval(query)

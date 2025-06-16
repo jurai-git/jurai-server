@@ -70,8 +70,9 @@ def create_app(use_ai=True, config_class=Config):
         from app.main.model.advogado import Advogado
         from app.main.model.requerente import Requerente
         from app.main.model.demanda import Demanda
-        from app.main.model.ai_data import AiData
         from app.main.model.advogado_pfp import AdvogadoPFP
+        from app.main.model.chat_message import ChatMessage
+        from app.main.model.chat import Chat
         db.create_all()
 
     # service initialization
