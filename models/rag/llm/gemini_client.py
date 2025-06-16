@@ -109,7 +109,7 @@ class GeminiClient:
             {self._contexts_to_prompt(contexts)}
             
             Se você sentir que a pergunta do usuário não tem a ver com os documentos ou jurisprudência, sinta-se livre para responder como acha adequado.
-            NÃO utilize Markdown (com asteriscos, marcação de código etc).
+            NÃO utilize Markdown (com asteriscos, marcação de código etc). NÃO deixe texto em negrito. Responda apenas com texto cru, com no máximo listas numéricas e formatação básica.
             // FIM DAS INTRUÇÕES
         """
 
