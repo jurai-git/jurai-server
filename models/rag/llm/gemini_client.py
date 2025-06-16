@@ -109,6 +109,7 @@ class GeminiClient:
             {self._contexts_to_prompt(contexts)}
             
             Se você sentir que a pergunta do usuário não tem a ver com os documentos ou jurisprudência, sinta-se livre para responder como acha adequado.
+            NÃO utilize Markdown (com asteriscos, marcação de código etc).
             // FIM DAS INTRUÇÕES
         """
 

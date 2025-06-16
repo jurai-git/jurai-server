@@ -286,7 +286,7 @@ def request_reset(email: str):
 @cross_origin()
 @advogado_bp.route('/reset-password/', methods=['POST'])
 def reset_password():
-    data = request.get_json(),
+    data = request.get_json()
     token = data.get('token')
     new_password = data.get('password')
 
