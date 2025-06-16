@@ -1,7 +1,4 @@
-from typing import List
-
 from app.main.extensions import db
-from app.main.model.chat_message import ChatMessage
 
 
 class Chat(db.Model):
@@ -12,3 +9,12 @@ class Chat(db.Model):
     message_count = db.Column(db.Integer, nullable=False, default=0)
 
     demanda_id = db.Column(db.Integer, db.ForeignKey('demanda.id_demanda'))
+
+    def serialize(self):
+        return {
+            'id_chat': self.id_chat,
+            'message_count': self.message_count,
+            'messages': [
+                message.serialize() for message in self.messages
+            ]
+        }

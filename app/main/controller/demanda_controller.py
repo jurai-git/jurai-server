@@ -6,6 +6,8 @@ from app.main.model.demanda import Demanda
 from app.main.service import requerente_service
 from app.main.service import advogado_service
 from app.main.service.advogado_service import AdvogadoService
+from app.main.service.ai_service import AIService
+from app.main.service.chat_service import ChatService
 from app.main.service.demanda_service import DemandaService
 from app.main.service.requerente_service import RequerenteService
 
@@ -137,3 +139,46 @@ def get_demanda(advogado, id_demanda):
                 "message": "INTERNAL_SERVER_ERROR",
                 "error": str(e)
             }), 500
+
+@cross_origin()
+@demanda_bp.route("/demanda/<int:id_demanda>/rag", methods=['POST'])
+@require_auth
+def chat_with_demanda(advogado, id_demanda):
+    data = request.get_json()
+    query = data.get("query")
+    if query is None or query.strip() == "":
+        return jsonify({"message": "REQUIRED_FIELDS_LEFT_EMPTY"}), 400
+
+    wants_rag = data.get("rag")
+    wants_rag = wants_rag is not None and wants_rag.strip() != ""
+
+    with current_app.app_context():
+        # first, load the demanda
+        demanda_service = current_app.extensions['demanda_service']
+        demanda = demanda_service.get_by_id(id_demanda)
+
+        if not demanda:
+            return jsonify({"message": "ERROR_DEMANDA_DOESNT_EXIST"}), 404
+
+        if demanda.requerente.advogado_id != advogado.id_advogado:
+            return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
+
+        ai_service: AIService = current_app.extensions['ai_service']
+
+        response = ai_service.generate_answer_with_history_or_error(query, wants_rag, demanda.id_demanda)
+        print(response)
+        return jsonify({"response": response}), 200
+
+@cross_origin()
+@demanda_bp.route("/demanda/<int:id_demanda>/rag", methods=['GET'])
+@require_auth
+def get_chat(advogado, id_demanda):
+
+    with current_app.app_context():
+        chat_service = current_app.extensions['chat_service']
+
+        chat = chat_service.get_or_create_chat(id_demanda)
+
+        return jsonify({
+            "chat": chat.serialize()
+        }), 200

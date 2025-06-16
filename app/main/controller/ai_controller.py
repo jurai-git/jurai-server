@@ -94,5 +94,3 @@ def rag(advogado):
             return search_result
 
         return ai_service.generate_final_answer_or_error(query, search_result)
-
-

@@ -2,9 +2,9 @@ from ast import literal_eval
 from typing import List
 
 from google import genai
+
 from app.main.model.dto.semantic_search_dto import SemanticSearchDTO
 from google.genai import types
-
 
 class GeminiContext:
 
@@ -49,7 +49,6 @@ class GeminiClient:
         print(f"REFINED QUERY: {response.text}")
 
         return response.text
-
 
     def rate_ementa_relevances(self, ementas: List[str], initial_user_query: str) -> List[float]:
         prompt = f"""
@@ -106,11 +105,13 @@ class GeminiClient:
             Não mencione nem insinue que a resposta foi gerada co'm base em documentos específicos ou em qualquer sistema de recuperação de informações. Forneça a resposta de forma genérica, preservando a confidencialidade e mantendo o foco no conteúdo útil para o advogado.
             
             Documentos:
-            {self._contexts_to_prompt(contexts)}
+            {self.contexts_to_prompt(contexts)}
             
             Se você sentir que a pergunta do usuário não tem a ver com os documentos ou jurisprudência, sinta-se livre para responder como acha adequado.
             // FIM DAS INTRUÇÕES
         """
+
+        print("checking if gemini wants a new rag")
 
         response = self.client.models.generate_content(
             model='gemini-2.5-flash-preview-05-20',
@@ -122,7 +123,33 @@ class GeminiClient:
             )
         )
 
+        print(f"Result: {response.text}")
         return response.text
+
+    def generate_answer_with_history(self, contents: List[types.Content]) -> str:
+        prompt = f"""
+            // INÍCIO DAS INSTRUÇÕES
+            Você é o assistente jurídico da plataforma JurAI, especialista em jurisprudência brasileira. Você receberá uma pergunta de um advogado sobre jurisprudência, junto com uma lista de documentos legais contendo Súmula, Ementa, Acórdão e um score de relevância para cada documento.
+
+            Utilize as informações mais relevantes desses documentos para fundamentar sua resposta, mas também combine com seu conhecimento jurídico consolidado para elaborar uma resposta clara, completa e atualizada, que reflita a prática jurídica brasileira atual. A resposta deve ser precisa, profissional e contextualizada, explicando conceitos essenciais mesmo que não estejam explicitamente detalhados nos documentos, desde que estejam em consonância com o entendimento jurídico vigente.
+
+            Não mencione nem insinue que a resposta foi gerada co'm base em documentos específicos ou em qualquer sistema de recuperação de informações. Forneça a resposta de forma genérica, preservando a confidencialidade e mantendo o foco no conteúdo útil para o advogado.
+
+            Se você sentir que a pergunta do usuário não tem a ver com os documentos ou jurisprudência, sinta-se livre para responder como acha adequado.
+            // FIM DAS INTRUÇÕES
+        """
+
+        response = self.client.models.generate_content(
+            model='gemini-2.5-flash-preview-05-20',
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=prompt,
+                max_output_tokens=16384,
+                temperature=0.2
+            )
+        )
+
+        return response.text;
 
     def _ementa_to_prompt(self, ementa: str, index: int):
         return f'Ementa {index}: {ementa}\n'
@@ -130,5 +157,6 @@ class GeminiClient:
     def _ementas_to_prompt(self, ementas: List[str]):
         return '\n'.join(self._ementa_to_prompt(ementa, i) for i, ementa in enumerate(ementas)) + '\n'
 
-    def _contexts_to_prompt(self, contexts: List[GeminiContext]):
+    @staticmethod
+    def contexts_to_prompt(contexts: List[GeminiContext]) -> str:
         return '\n'.join(context.to_prompt(i + 1) for i, context in enumerate(contexts)) + '\n'
