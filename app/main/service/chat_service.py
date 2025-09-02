@@ -1,25 +1,54 @@
 from typing import List
 
 from flask_sqlalchemy import SQLAlchemy
-
 from app.main.model.chat import Chat
 from app.main.model.chat_message import ChatMessage
 from google.genai.types import Content, Part
+from sqlalchemy.orm.exc import NoResultFound
+
+from app.main.model.demanda import Demanda
+from app.main.model.requerente import Requerente
 
 
 class ChatService:
-
     def __init__(self, db: SQLAlchemy):
         self.db = db
 
-
     # TODO: Right now, we are assuming a 1:1 relationship between demanda and chat.
     # TODO: In the future, an advogado may have more than one chat per demanda. But, for now, this should work.
-    def get_chat_by_demanda_id(self, demanda_id) -> Chat:
-        chats = self.db.session.query(Chat).filter_by(demanda_id=demanda_id).all()
+    def get_chat_by_demanda_id(self, demanda_id) -> Chat | None:
+        chats = (
+            self.db.session.query(Chat)
+            .join(Chat.demanda)
+            .filter(
+                Chat.demanda_id == demanda_id,
+            )
+            .all()
+        )
         if len(chats) == 0:
             return None
         return chats[0]
+
+    def get_chat_by_id_and_advogado(self, advogado, chat_id) -> Chat | None:
+        try:
+            chat = (
+                self.db.session.query(Chat)
+                .join(Chat.demanda)
+                .join(Demanda.requerente)
+                .filter(
+                    Chat.id_chat == chat_id,
+                    Requerente.advogado_id == advogado.id_advogado
+                )
+                .one()
+            )
+            return chat
+        except NoResultFound:
+            return None
+
+    def get_all_from_advogado(self, advogado):
+        chats = self.db.session.query(Chat).join(Demanda.requerente).filter(Requerente.advogado_id == advogado.id_advogado).all()
+
+        return chats
 
     def get_or_create_chat(self, demanda_id) -> Chat:
         chat = self.get_chat_by_demanda_id(demanda_id)
@@ -76,17 +105,8 @@ class ChatService:
             temp[message.position] = Content(
                     role=message.role,
                     parts=[Part(
-                        text=f"[[RAG_DATA]]: {message.contents}" if message.message_type == "rag" else message.contents
+                        text=f"RAG_DATA: {message.contents}" if message.message_type == "rag" else message.contents
                     )]
             )
 
-        print(temp)
         return [temp[pos] for pos in sorted(temp)]
-
-
-
-
-
-
-
-

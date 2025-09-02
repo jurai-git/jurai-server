@@ -1,11 +1,7 @@
-from typing import List, Tuple
-
 from flask import Blueprint, current_app, request
-from flask.wrappers import Response
 from flask_cors import CORS, cross_origin
 
 from app.main.controller import require_auth
-from app.main.model.dto.semantic_search_dto import SemanticSearchDTO
 from app.main.util import pdf_utils as pdf, normalizer
 
 from keras.src.saving import load_model
@@ -28,7 +24,6 @@ prob_tokenizer = build_tokenizer_from_csv(
 @ai_bp.route('/probability', methods=['POST'])
 def probability_model():
     try:
-        text = ''
         json = request.get_json()
 
         if 'text' in json:
@@ -71,7 +66,7 @@ def semantic_search(advogado):
         })
 
 @cross_origin()
-@ai_bp.route('/rag', methods=['POST'])
+@ai_bp.route('/chat', methods=['POST'])
 @require_auth
 def rag(advogado):
     data = request.get_json()

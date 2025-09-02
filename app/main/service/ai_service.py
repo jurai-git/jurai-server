@@ -1,4 +1,3 @@
-import sys
 import traceback
 from typing import List, Tuple
 
@@ -62,15 +61,15 @@ class AIService:
             "response": self.gemini_client.generate_answer_from_context(query, gemini_contexts)
         }), 200
 
-    def generate_answer_with_history_or_error(self, query: str, wants_rag: bool, demanda_id: int) -> str | tuple[Response, int]:
+    def generate_answer_with_history_or_error(self, query: str, wants_rag: bool, id_demanda: int) -> str | tuple[Response, int]:
         with current_app.app_context():
             chat_service = current_app.extensions['chat_service']
             processo_service = current_app.extensions['processo_service']
 
             # get chat and append user's message
-            chat: Chat = chat_service.get_or_create_chat(demanda_id)
+            chat: Chat = chat_service.get_or_create_chat(id_demanda)
             destructured_chat = chat_service.destructure_data(chat)
-            if len(destructured_chat) == 0 or wants_rag:
+            if wants_rag:
                 print("Adding rag")
                 result = self._add_additional_rag(chat, destructured_chat, query, processo_service, chat_service)
                 if type(result) == tuple:
@@ -82,7 +81,7 @@ class AIService:
 
             destructured_chat.append(
                 Content(
-                   role="user",
+                    role="user",
                     parts=[Part(text=query)]
                 )
             )
@@ -94,7 +93,6 @@ class AIService:
                 return chat
 
             return answer
-
 
     def _add_additional_rag(self,
                                 chat: Chat,
@@ -121,7 +119,7 @@ class AIService:
         # also append RAG to destructured chat
         destructured_chat.append(Content(
             role="user",
-            parts=[Part(text=f"[[RAG_DATA]] {context_from_rag}")]
+            parts=[Part(text=f"RAG_DATA: {context_from_rag}")]
         ))
 
 

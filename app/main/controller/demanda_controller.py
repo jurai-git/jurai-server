@@ -141,7 +141,7 @@ def get_demanda(advogado, id_demanda):
             }), 500
 
 @cross_origin()
-@demanda_bp.route("/demanda/<int:id_demanda>/rag", methods=['POST'])
+@demanda_bp.route("/demanda/<int:id_demanda>/chat", methods=['POST'])
 @require_auth
 def chat_with_demanda(advogado, id_demanda):
     data = request.get_json()
@@ -150,35 +150,47 @@ def chat_with_demanda(advogado, id_demanda):
         return jsonify({"message": "REQUIRED_FIELDS_LEFT_EMPTY"}), 400
 
     wants_rag = data.get("rag")
-    wants_rag = wants_rag is not None and wants_rag.strip() != ""
+    wants_rag = wants_rag is not None and str(wants_rag).strip() == "true"
 
     with current_app.app_context():
         # first, load the demanda
         demanda_service = current_app.extensions['demanda_service']
         demanda = demanda_service.get_by_id(id_demanda)
 
-        if not demanda:
+        # No demanda = no chat; if demanda doesn't exist, we return 404 too for better security
+        if demanda is None or demanda.requerente.advogado_id != advogado.id_advogado:
             return jsonify({"message": "ERROR_DEMANDA_DOESNT_EXIST"}), 404
 
-        if demanda.requerente.advogado_id != advogado.id_advogado:
-            return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
-
+        # now, we get the generate a response for that chat with that demanda
+        # this already handles things like appending and persisting the messages
         ai_service: AIService = current_app.extensions['ai_service']
-
         response = ai_service.generate_answer_with_history_or_error(query, wants_rag, demanda.id_demanda)
-        print(response)
+
         return jsonify({"response": response}), 200
 
 @cross_origin()
-@demanda_bp.route("/demanda/<int:id_demanda>/rag", methods=['GET'])
+@demanda_bp.route("/demanda/<int:id_demanda>/chat", methods=['GET'])
 @require_auth
 def get_chat(advogado, id_demanda):
-
     with current_app.app_context():
         chat_service = current_app.extensions['chat_service']
+        demanda_service = current_app.extensions['demanda_service']
 
-        chat = chat_service.get_or_create_chat(id_demanda)
+        # first, we check if the advogado owns that demanda
+        if not demanda_service.is_demanda_owned_by_advogado(id_demanda, advogado):
+            return jsonify({
+                'status': 'ERROR',
+                'message': 'DEMANDA_NOT_FOUND'
+            })
 
-        return jsonify({
-            "chat": chat.serialize()
-        }), 200
+        try:
+            chat = chat_service.get_or_create_chat(id_demanda)
+            return jsonify({
+                'status': 'SUCCESS',
+                'chat': chat.serialize_full()
+            })
+        except:
+            return jsonify({
+                'status': 'error',
+                'message': 'INTERNAL_SERVER_ERROR'
+            })

@@ -10,11 +10,17 @@ class Chat(db.Model):
 
     demanda_id = db.Column(db.Integer, db.ForeignKey('demanda.id_demanda'))
 
-    def serialize(self):
+    def serialize_full(self):
         return {
             'id_chat': self.id_chat,
             'message_count': self.message_count,
             'messages': [
-                message.serialize() for message in self.messages
+                message.serialize() for message in self.messages.all()
             ]
+        }
+
+    def serialize_streamlined(self):
+        return {
+            'id_chat': self.id_chat,
+            'message_count': self.message_count,
         }
