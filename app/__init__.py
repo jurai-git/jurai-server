@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from app.config import Config
 from app.main.service.advogado_service import AdvogadoService
 from app.main.service.email_service import EmailService
+from app.main.service.processo_service import ProcessoService
 from app.main.service.requerente_service import RequerenteService
 from app.main.service.demanda_service import DemandaService
 from app.main.extensions import db, redis
@@ -28,6 +29,10 @@ def create_app(use_ai=True, config_class=Config):
         'SMTP_SENDER',
         'SMTP_PASSWORD'
     ]
+    if use_ai:
+        required_env_vars.append('GEMINI_API_KEY')
+        required_env_vars.append('PINECONE_API_KEY')
+        required_env_vars.append('PINECONE_INDEX_URL')
 
     missing = [var for var in required_env_vars if not os.getenv(var)]
 
@@ -65,8 +70,9 @@ def create_app(use_ai=True, config_class=Config):
         from app.main.model.advogado import Advogado
         from app.main.model.requerente import Requerente
         from app.main.model.demanda import Demanda
-        from app.main.model.ai_data import AiData
         from app.main.model.advogado_pfp import AdvogadoPFP
+        from app.main.model.chat_message import ChatMessage
+        from app.main.model.chat import Chat
         db.create_all()
 
     # service initialization
@@ -76,12 +82,30 @@ def create_app(use_ai=True, config_class=Config):
     app.extensions['requerente_service'] = requerente_service
     demanda_service = DemandaService(db)
     app.extensions['demanda_service'] = demanda_service
+    processo_service = ProcessoService(db)
+    app.extensions['processo_service'] = processo_service
 
     email_service = EmailService(smtp_sender, smtp_password, smtp_server=smtp_host, smtp_port=smtp_port)
     app.extensions['email_service'] = email_service
 
     # initialize redis
     app.extensions['redis'] = redis
+
+    # if using AI, initialize RAG, AI service, Chat service and gemini client
+    if use_ai:
+        from app.main.ai_extensions import retriever
+        app.extensions['retriever'] = retriever
+
+        from app.main.ai_extensions import gemini_client
+        app.extensions['gemini_client'] = gemini_client
+
+        from app.main.service.ai_service import AIService
+        ai_service = AIService(db, retriever=retriever, gemini_client=gemini_client)
+        app.extensions['ai_service'] = ai_service
+
+        from app.main.service.chat_service import ChatService
+        chat_service = ChatService(db)
+        app.extensions['chat_service'] = chat_service
 
 
     # requests configs
@@ -117,6 +141,7 @@ def create_app(use_ai=True, config_class=Config):
     from app.main import main_bp as main_bp
     app.register_blueprint(main_bp)
 
+    # register AI endpoints
     if use_ai:
         print('using ai')
         app.register_blueprint(get_ai_bp())

@@ -45,7 +45,9 @@ class DemandaService:
                 "justica_gratuita": d.justica_gratuita,
                 "guia_custas": d.guia_custas,
                 "resumo": d.resumo,
-                "status": d.status
+                "status": d.status,
+                "dono": d.requerente.nome,
+                "chats": [chat.id_chat for chat in d.chats]
             }
 
     def update_demanda(self, demanda, data):
@@ -97,6 +99,18 @@ class DemandaService:
         except Exception as e:
             self.db.session.rollback()
             raise e
+
+    def is_demanda_owned_by_advogado(self, demanda_id: int, advogado) -> bool:
+        count = (
+            self.db.session.query(Demanda)
+            .join(Demanda.requerente)
+            .filter(
+                Demanda.id_demanda == demanda_id,
+                Requerente.advogado_id == advogado.id_advogado
+            )
+            .count()
+        )
+        return count > 0
 
     def get_all_by_advogado(self, advogado: Advogado):
         return Demanda.query.join(Requerente).filter(Requerente.advogado_id == advogado.id_advogado).all()

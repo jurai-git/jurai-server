@@ -9,7 +9,6 @@ from app.main.model.advogado_pfp import AdvogadoPFP
 
 from PIL import Image
 
-
 class AdvogadoService:
 
     def __init__(self, db: SQLAlchemy):
@@ -132,6 +131,7 @@ class AdvogadoService:
 
     def delete_advogado(self, advogado):
         try:
+            advogado = self.db.session.merge(advogado)
             self.db.session.delete(advogado)
             self.db.session.commit()
         except Exception as e:

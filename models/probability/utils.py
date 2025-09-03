@@ -1,9 +1,7 @@
-import re
 import pandas as pd
-from pypdf import PdfReader
 from keras.src.legacy.preprocessing.text import Tokenizer
 from keras.src.utils import pad_sequences
-from models.purify import PurifyScraper
+from models.probability.purify import PurifyScraper
 
 
 def build_tokenizer_from_csv(csv_file, vocab_size, oov_token):

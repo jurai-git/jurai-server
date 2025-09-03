@@ -24,7 +24,7 @@ class Demanda(db.Model):
     resumo = db.Column(db.String(4096), nullable=False)
 
     # FKs
-    ai_data = db.relationship('AiData', back_populates='demanda', uselist=False)
+    chats = db.relationship("Chat", backref="demanda", lazy='joined')
     id_requerente = db.Column(db.Integer, db.ForeignKey('requerente.id_requerente'), nullable=False)
     requerente = db.relationship("Requerente", back_populates="demandas", lazy="select")
 

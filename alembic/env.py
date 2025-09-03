@@ -16,6 +16,9 @@ from app.main.model.advogado import Advogado
 from app.main.model.requerente import Requerente
 from app.main.model.demanda import Demanda
 from app.main.model.advogado_pfp import AdvogadoPFP
+from app.main.model.processo import Processo
+from app.main.model.chat_message import ChatMessage
+from app.main.model.chat import Chat
 # import other models as needed
 
 # IMPORTANT: import your Base metadata object, or create one if models don't share it
