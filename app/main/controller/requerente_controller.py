@@ -21,7 +21,7 @@ def update_requerente(advogado, id):
             # get requerente
             requerente = requerente_service.get_by_id(id)
             if requerente is None:
-                return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
+                return jsonify({"message": "ERROR_REQUERENTE_NOT_FOUND"}), 404
 
             try:
                 requerente_service.update_requerente(advogado, requerente, data)
@@ -31,7 +31,6 @@ def update_requerente(advogado, id):
         except Exception as e:
             current_app.logger.warning(f"Returning 500 due to {e}")
             return jsonify({"message": "INTERNAL_SERVER_ERROR", "error": str(e)}), 500
-
 
 
 @cross_origin()

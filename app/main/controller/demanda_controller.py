@@ -2,14 +2,11 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_cors import CORS, cross_origin
 
 from app.main.controller import require_auth
-from app.main.model.demanda import Demanda
-from app.main.service import requerente_service
-from app.main.service import advogado_service
-from app.main.service.advogado_service import AdvogadoService
 from app.main.service.ai_service import AIService
-from app.main.service.chat_service import ChatService
 from app.main.service.demanda_service import DemandaService
 from app.main.service.requerente_service import RequerenteService
+from sqlalchemy.orm.exc import NoResultFound
+
 
 demanda_bp = Blueprint('demanda', __name__)
 CORS(demanda_bp)
@@ -44,7 +41,7 @@ def create_demanda(advogado, id_requerente):
         try:
             requerente = requerente_service.get_by_id(id_requerente)
             if requerente is None:
-                return jsonify({"message": "ERROR_REQUERENTE_DOESNT_EXIST"}), 404
+                return jsonify({"message": "ERROR_REQUERENTE_NOT_FOUND"}), 404
 
             if not requerente.advogado_id == advogado.id_advogado:
                 return jsonify({"message": "ERROR_PERMISSION_DENIED"}), 403
@@ -93,7 +90,7 @@ def update_demanda(advogado, id_demanda):
 
             demanda = demanda_service.get_by_id(id_demanda)
             if not demanda:
-                return jsonify({"message": "ERROR_DEMANDA_DOESNT_EXIST"}), 404
+                return jsonify({"message": "ERROR_DEMANDA_NOT_FOUND"}), 404
 
             if demanda.requerente.advogado_id != advogado.id_advogado:
                 return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
@@ -123,7 +120,7 @@ def get_demanda(advogado, id_demanda):
             demanda = demanda_service.get_by_id(id_demanda)
 
             if not demanda:
-                return jsonify({"message": "ERROR_DEMANDA_DOESNT_EXIST"}), 404
+                return jsonify({"message": "ERROR_DEMANDA_NOT_FOUND"}), 404
 
             if not demanda or demanda.requerente.advogado_id != advogado.id_advogado:
                 return jsonify({"message": "ERROR_ACCESS_DENIED"}), 403
@@ -150,7 +147,8 @@ def chat_with_demanda(advogado, id_demanda):
         return jsonify({"message": "REQUIRED_FIELDS_LEFT_EMPTY"}), 400
 
     wants_rag = data.get("rag")
-    wants_rag = wants_rag is not None and str(wants_rag).strip() == "true"
+    wants_rag = wants_rag is not None and (str(wants_rag).strip() == "true" or str(wants_rag).strip() == "True")
+    print(f"QUER RAG: {wants_rag}")
 
     with current_app.app_context():
         # first, load the demanda
@@ -159,7 +157,7 @@ def chat_with_demanda(advogado, id_demanda):
 
         # No demanda = no chat; if demanda doesn't exist, we return 404 too for better security
         if demanda is None or demanda.requerente.advogado_id != advogado.id_advogado:
-            return jsonify({"message": "ERROR_DEMANDA_DOESNT_EXIST"}), 404
+            return jsonify({"message": "ERROR_DEMANDA_NOT_FOUND"}), 404
 
         # now, we get the generate a response for that chat with that demanda
         # this already handles things like appending and persisting the messages
@@ -194,3 +192,51 @@ def get_chat(advogado, id_demanda):
                 'status': 'error',
                 'message': 'INTERNAL_SERVER_ERROR'
             })
+
+@cross_origin()
+@demanda_bp.route('/demanda/<int:demanda_id>/message/<int:message_id>', methods=['DELETE'])
+@require_auth
+def delete_message(advogado, demanda_id, message_id):
+
+    with current_app.app_context():
+        chat_service = current_app.extensions['chat_service']
+        
+        try:
+            chat = chat_service.get_chat_by_demanda_and_advogado(advogado, demanda_id)
+            if chat is None:
+                return jsonify({
+                    'status': 'ERROR',
+                    'message': 'ERROR_DEMANDA_NOT_FOUND'
+                }), 404
+        
+            chat_service.delete_message(chat, message_id)
+        except NoResultFound:
+            return jsonify({
+                'status': 'ERROR',
+                'message': 'ERROR_MESSAGE_NOT_FOUND'
+            }), 404
+        except Exception as e:
+            return jsonify({
+                'status': 'ERROR',
+                'message': 'INTERNAL_SERVER_ERROR'
+            })
+
+@cross_origin()
+@demanda_bp.route("/demanda/<int:id_demanda>/chat", methods=['DELETE'])
+@require_auth
+def delete_demanda_chat(advogado, id_demanda):
+
+    with current_app.app_context():
+        chat_service = current_app.extensions['chat_service']
+        try:
+            chat_service.delete_chat_by_demanda_and_advogado(advogado, id_demanda)
+        except Exception as e:
+            current_app.logger.error(e)
+            return jsonify({
+                'status': 'ERROR',
+                'message': 'INTERNAL_SERVER_ERROR'
+            }), 500
+
+        return jsonify({
+            'status': 'SUCCESS',
+        }), 200

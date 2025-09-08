@@ -29,6 +29,40 @@ class ChatService:
             return None
         return chats[0]
 
+    def get_chat_by_demanda_and_advogado(self, advogado, demanda_id) -> Chat | None:
+        chats = (
+            self.db.session.query(Chat)
+            .join(Chat.demanda)
+            .join(Demanda.requerente)
+            .filter(
+                Chat.demanda_id == demanda_id,
+                Requerente.advogado_id == advogado.id_advogado,
+            )
+            .all()
+        )
+        if len(chats) == 0:
+            return None
+        return chats[0]
+
+    def delete_chat_by_demanda_and_advogado(self, advogado, demanda_id):
+        try:
+            chats = (
+                self.db.session.query(Chat)
+                .join(Chat.demanda)
+                .join(Demanda.requerente)
+                .filter(Chat.demanda_id == demanda_id,
+                        Requerente.advogado_id == advogado.id_advogado)
+                .all()
+            )
+
+            for chat in chats:
+                self.db.session.delete(chat)
+
+            self.db.session.commit()
+        except Exception as e:
+            self.db.session.rollback()
+            raise e
+
     def get_chat_by_id_and_advogado(self, advogado, chat_id) -> Chat | None:
         try:
             chat = (
@@ -79,6 +113,25 @@ class ChatService:
         self._persist_message(chat, chat_msg)
 
         return chat_msg
+
+    def delete_message(self, chat: Chat, msg_id: int):
+        try:
+            # Get position of the message to delete
+            msg_pos = self.db.session.query(ChatMessage.position).filter(
+                ChatMessage.id_message == msg_id
+            ).one()[0]
+
+            # Delete all messages in the chat from this position onward
+            self.db.session.query(ChatMessage).filter(
+                ChatMessage.chat_id == chat.id,
+                ChatMessage.position >= msg_pos
+            ).delete(synchronize_session=False)
+
+            self.db.session.commit()
+
+        except Exception as e:
+            self.db.session.rollback()
+            raise e
 
     def append_gemini_message(self, chat: Chat, message: str):
         pos = chat.message_count
